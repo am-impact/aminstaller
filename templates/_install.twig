@@ -1,0 +1,50 @@
+{% extends 'aminstaller/_layouts/base.twig' %}
+
+{% if moduleName is not defined %}
+    {% exit 404 %}
+{% endif %}
+
+{% set moduleInformation = craft.amInstaller.getModuleInformation(moduleName) %}
+
+{% if not moduleInformation %}
+    {% exit 404 %}
+{% endif %}
+
+{% set title = 'Module installatie: ' ~ moduleInformation.name %}
+
+{% set tabs = moduleInformation.tabs %}
+
+{% import "_includes/forms" as forms %}
+
+{% set body %}
+    <form method="post" action="" accept-charset="UTF-8">
+        <input type="hidden" name="action" value="amInstaller/install/installModule">
+        <input type="hidden" name="redirect" value="aminstaller">
+        <input type="hidden" name="module" value="{{ moduleName }}">
+
+        <div id="tab-main">
+            <h1>Algemeen</h1>
+            <p>{{ moduleInformation.description }}</p>
+
+            {# Display some information about the module installation #}
+            {% if moduleInformation.main is defined %}
+                {% include 'aminstaller/_install/main' %}
+            {% endif %}
+        </div>
+
+        {# Display the sections that'll be installed #}
+        {% if moduleInformation.sections is defined %}
+            {% include 'aminstaller/_install/sections' %}
+        {% endif %}
+
+        {# Display the option to install test entries #}
+        {% if moduleInformation.entries is defined %}
+            {% include 'aminstaller/_install/entries' %}
+        {% endif %}
+
+        <div class="buttons">
+            <input class="btn submit" type="submit" value="Installeren" />
+            <input type="button" class="btn delete" value="Annuleren" onclick="history.back()" />
+        </div>
+    </form>
+{% endset %}

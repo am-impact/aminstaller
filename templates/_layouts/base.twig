@@ -1,0 +1,10 @@
+{% extends "_layouts/cp" %}
+
+{% if title is not defined %}
+    {% set title = craft.amInstaller.name %}
+{% endif %}
+{% set docsUrl = 'https://github.com/am-impact/aminstaller' %}
+
+{% set content %}
+    {{ body }}
+{% endset %}

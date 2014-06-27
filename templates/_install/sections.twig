@@ -1,0 +1,20 @@
+<div id="tab-sections" class="hidden">
+    <h1>Secties</h1>
+    <p>
+        <span class="">
+        Hieronder worden de secties weergegeven die ge&iuml;nstalleerd zullen worden.<br>
+        U kunt ervoor kiezen om de namen van deze secties aan te passen.<br>
+        Als u onderstaande velden aanpast zal de installatie automatisch rekening houden met de URI.
+        </span>
+    </p>
+    <p class="warning">Let op: De template groep wordt aangemaakt op basis van de Entry sectie.</p>
+
+    {% for section in moduleInformation.sections %}
+        {{ forms.textField({
+            label: section.type ~ ': ' ~ section.label,
+            instructions: section.info,
+            name: section.name,
+            value: section.label
+        }) }}
+    {% endfor %}
+</div>

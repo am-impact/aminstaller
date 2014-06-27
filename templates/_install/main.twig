@@ -1,0 +1,22 @@
+<hr>
+
+<h2>Installatie informatie</h2>
+
+<table id="modules" class="data fullwidth collapsible">
+    <thead>
+        <th scope="col">Actie</th>
+        <th scope="col">Waarde</th>
+    </thead>
+    <tbody>
+        {% for info in moduleInformation.main %}
+            <tr data-name="{{ info.name }}">
+                <th data-title="Actie">
+                    {{ info.name }}
+                </th>
+                <td data-title="Waarde">
+                    <span class="light">{{ info.value }}</span>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

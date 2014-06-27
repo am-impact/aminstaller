@@ -1,0 +1,25 @@
+<div id="tab-entries" class="hidden">
+    <h1>Entries</h1>
+
+    {% for field in moduleInformation.entries %}
+        {% switch field.type %}
+
+            {% case 'checkbox' %}
+                {{ forms.checkboxField({
+                    label: field.label,
+                    name: field.name,
+                    value: field.value,
+                    checked: field.checked
+                }) }}
+
+            {% case 'select' %}
+                {{ forms.selectField({
+                    label: field.label,
+                    name: field.name,
+                    value: field.value,
+                    options: field.options
+                }) }}
+
+        {% endswitch %}
+    {% endfor %}
+</div>
