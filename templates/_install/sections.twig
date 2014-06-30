@@ -3,18 +3,26 @@
     <p>
         <span class="">
         Hieronder worden de secties weergegeven die ge&iuml;nstalleerd zullen worden.<br>
-        U kunt ervoor kiezen om de namen van deze secties aan te passen.<br>
-        Als u onderstaande velden aanpast zal de installatie automatisch rekening houden met de URI.
+        U kunt ervoor kiezen om de namen van deze secties aan te passen.
         </span>
     </p>
-    <p class="warning">Let op: De template groep wordt aangemaakt op basis van de Entry sectie.</p>
+    <p class="warning">Let op: De template groep wordt aangemaakt op basis van de Entry sectie URI.</p>
 
-    {% for section in moduleInformation.sections %}
+    {% for sectionName, section in moduleInformation.sections %}
         {{ forms.textField({
             label: section.type ~ ': ' ~ section.label,
             instructions: section.info,
-            name: section.name,
+            name: sectionName,
             value: section.label
         }) }}
+        {{ forms.textField({
+            label: 'URL-Formaat',
+            instructions: 'Hoe de entry URL eruit zou moeten zien.',
+            name: sectionName ~ 'UrlFormat',
+            value: section.urlFormat
+        }) }}
+        {% if not loop.last %}
+            <hr>
+        {% endif %}
     {% endfor %}
 </div>

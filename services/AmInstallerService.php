@@ -3,17 +3,22 @@ namespace Craft;
 
 class AmInstallerService extends BaseApplicationComponent
 {
+    private $installedModules = array();
+
     /**
      * Get the information of a module.
      *
      * @param string $moduleName
+     * @param bool   $getInstallInformation [Optional] Only get the install information of a module.
      *
      * @return array
      */
-    public function getModule($moduleName)
+    public function getModule($moduleName, $getInstallInformation = false)
     {
-        $moduleData = $this->_currentModules($moduleName);
-        $this->_currentModuleInstallInformation($moduleName, $moduleData);
+        // Retrieve the requested module only
+        $moduleData = $getInstallInformation ? array() : $this->_getAvailableModules($moduleName);
+        // Add the additional installation information
+        $this->_getModuleInstallInformation($moduleName, $moduleData);
         return $moduleData;
     }
 
@@ -24,7 +29,33 @@ class AmInstallerService extends BaseApplicationComponent
      */
     public function getModules()
     {
-        return $this->_currentModules();
+        return $this->_getAvailableModules();
+    }
+
+    /**
+     * Get installed modules.
+     */
+    private function _setInstalledModules()
+    {
+        $allInstalledModules = AmInstallerRecord::model()->findAll();
+        if ($allInstalledModules) {
+            foreach ($allInstalledModules as $key => $module) {
+                $attributes = $module->getAttributes();
+                $this->installedModules[ $attributes['handle'] ] = $attributes['installed'] == '1';
+            }
+        }
+    }
+
+    /**
+     * Check whether a module is installed.
+     *
+     * @param string $moduleName
+     *
+     * @return bool
+     */
+    private function _isModuleInstalled($moduleName)
+    {
+        return isset($this->installedModules[$moduleName]) ? $this->installedModules[$moduleName] : false;
     }
 
     /**
@@ -34,60 +65,53 @@ class AmInstallerService extends BaseApplicationComponent
      *
      * @return array
      */
-    private function _currentModules($getModuleByName = '')
+    private function _getAvailableModules($getModuleByName = '')
     {
         // Find installed modules
-        $installedModules = array();
-        $allInstalledModules = AmInstallerRecord::model()->findAll();
-        if ($allInstalledModules) {
-            foreach ($allInstalledModules as $key => $module) {
-                $attributes = $module->getAttributes();
-                $installedModules[ $attributes['handle'] ] = $attributes['installed'] == '1';
-            }
-        }
+        $this->_setInstalledModules();
         // Set the information of every module
-        $currentModules = array(
+        $availableModules = array(
             'algemeen' => array(
-                'name' => 'Algemeen',
+                'name'        => 'Algemeen',
                 'description' => 'Veel gebruikte velden toevoegen en standaard pagina\'s zoals contact, zoekresultaat en dergelijke.',
-                'installed' => isset($installedModules['algemeen']) ? $installedModules['algemeen'] : false
+                'installed'   => $this->_isModuleInstalled('algemeen')
             ),
             'diensten' => array(
-                'name' => 'Diensten',
+                'name'        => 'Diensten',
                 'description' => 'Dienst overzicht en diensten.',
-                'installed' => isset($installedModules['diensten']) ? $installedModules['diensten'] : false
+                'installed'   => $this->_isModuleInstalled('diensten')
             ),
             'medewerkers' => array(
-                'name' => 'Medewerkers',
+                'name'        => 'Medewerkers',
                 'description' => 'Medewerkers overzicht en medewerkers.',
-                'installed' => isset($installedModules['medewerkers']) ? $installedModules['medewerkers'] : false
+                'installed'  => $this->_isModuleInstalled('medewerkers')
             ),
             'news' => array(
-                'name' => 'Nieuws',
+                'name'        => 'Nieuws',
                 'description' => 'Nieuws overzicht en nieuwsberichten.',
-                'installed' => isset($installedModules['news']) ? $installedModules['news'] : false
+                'installed'   => $this->_isModuleInstalled('news')
             ),
             'producten' => array(
-                'name' => 'Producten',
+                'name'        => 'Producten',
                 'description' => 'Producten overzicht en producten.',
-                'installed' => isset($installedModules['producten']) ? $installedModules['producten'] : false
+                'installed'   => $this->_isModuleInstalled('producten')
             ),
             'referenties' => array(
-                'name' => 'Referenties',
+                'name'        => 'Referenties',
                 'description' => 'Referenties overzicht en referenties.',
-                'installed' => isset($installedModules['referenties']) ? $installedModules['referenties'] : false
+                'installed'   => $this->_isModuleInstalled('referenties')
             ),
             'vacatures' => array(
-                'name' => 'Vacatures',
+                'name'        => 'Vacatures',
                 'description' => 'Vacatures overzicht en vacatures.',
-                'installed' => isset($installedModules['vacatures']) ? $installedModules['vacatures'] : false
+                'installed'   => $this->_isModuleInstalled('vacatures')
             )
         );
         // Return all or a specific module
         if (! empty($getModuleByName)) {
-            return isset($currentModules[$getModuleByName]) ? $currentModules[$getModuleByName] : false;
+            return isset($availableModules[$getModuleByName]) ? $availableModules[$getModuleByName] : false;
         }
-        return $currentModules;
+        return $availableModules;
     }
 
     /**
@@ -96,7 +120,7 @@ class AmInstallerService extends BaseApplicationComponent
      * @param string $moduleName  The module name.
      * @param array  &$moduleData The module data.
      */
-    private function _currentModuleInstallInformation($moduleName, &$moduleData)
+    private function _getModuleInstallInformation($moduleName, &$moduleData)
     {
         switch ($moduleName) {
             case 'algemeen':
@@ -107,55 +131,55 @@ class AmInstallerService extends BaseApplicationComponent
                 $moduleData['tabs'] = array(
                     'installMain' => array(
                         'label' => 'Algemeen',
-                        'url' => '#tab-main'
+                        'url'   => '#tab-main'
                     ),
                     'installSections' => array(
                         'label' => 'Secties',
-                        'url' => '#tab-sections'
+                        'url'   => '#tab-sections'
                     ),
                     'installEntries' => array(
                         'label' => 'Entries',
-                        'url' => '#tab-entries'
+                        'url'   => '#tab-entries'
                     )
                 );
                 $moduleData['main'] = array(
                     array(
-                        'name' => 'Aantal secties',
+                        'name'  => 'Aantal secties',
                         'value' => 2
                     ),
                     array(
-                        'name' => 'Type secties',
+                        'name'  => 'Type secties',
                         'value' => 'Single & channel'
                     )
                 );
                 $moduleData['sections'] = array(
-                    array(
-                        'type' => 'Overzicht',
-                        'name' => 'overview',
-                        'label' => 'Medewerker overzicht',
-                        'info' => 'Naam van het overzicht in de CP.'
+                    'overviewSection' => array(
+                        'type'      => 'Overzicht',
+                        'label'     => 'Medewerker overzicht',
+                        'urlFormat' => 'medewerkers',
+                        'info'      => 'Naam van het overzicht in de CP.'
                     ),
-                    array(
-                        'type' => 'Entry',
-                        'name' => 'entry',
-                        'label' => 'Medewerker',
-                        'info' => 'Naam van de entry in de CP.'
+                    'entrySection' => array(
+                        'type'      => 'Entry',
+                        'label'     => 'Medewerker',
+                        'urlFormat' => 'medewerkers/{slug}',
+                        'info'      => 'Naam van de entry in de CP.'
                     )
                 );
                 $moduleData['entries'] = array(
                     array(
-                        'type' => 'checkbox',
-                        'name' => 'installTestEntries',
-                        'value' => 1,
+                        'type'    => 'checkbox',
+                        'name'    => 'installTestEntries',
+                        'value'   => 1,
                         'checked' => false,
-                        'label' => 'Installeer test entries?'
+                        'label'   => 'Installeer test entries?'
                     ),
                     array(
-                        'type' => 'select',
-                        'name' => 'testEntriesAmount',
-                        'value' => 1,
+                        'type'    => 'select',
+                        'name'    => 'testEntriesAmount',
+                        'value'   => 1,
                         'options' => array_combine(range(1,10), range(1,10)),
-                        'label' => 'Het aantal te installeren entries'
+                        'label'   => 'Het aantal te installeren entries'
                     )
                 );
                 break;

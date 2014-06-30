@@ -16,11 +16,11 @@ class AmInstallerVariable
     }
 
     /**
-     * Get a module.
+     * Get the information of a module.
      *
      * @param string $moduleName
      *
-     * @return bool|string
+     * @return mixed Array with module information, false if module doesn't exist.
      */
     public function getModuleInformation($moduleName)
     {
@@ -28,7 +28,7 @@ class AmInstallerVariable
     }
 
     /**
-     * Get available modules.
+     * Get available modules information.
      *
      * @return array
      */
