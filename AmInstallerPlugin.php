@@ -50,4 +50,21 @@ class AmInstallerPlugin extends BasePlugin
             'aminstaller/install/(?P<moduleName>.*+)' => 'aminstaller/_install'
         );
     }
+
+    /**
+     * Redirect to plugin after install.
+     */
+    public function onAfterInstall()
+    {
+        craft()->request->redirect('aminstaller');
+    }
+
+    /**
+     * Drop plugin tables
+     */
+    public function dropTables()
+    {
+        $installerRecord = new AmInstallerRecord();
+        $installerRecord->dropTable();
+    }
 }

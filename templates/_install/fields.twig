@@ -1,0 +1,32 @@
+<hr>
+
+<h2>Velden die ge&iuml;nstalleerd gaan worden mits deze niet aanwezig zijn</h2>
+
+<table id="information-fields" class="data fullwidth collapsible">
+    <thead>
+        <th scope="col">Naam</th>
+        <th scope="col">Handle</th>
+        <th scope="col">Type</th>
+        <th scope="col">Groep</th>
+    </thead>
+    <tbody>
+        {% for fieldLayoutName, fields in moduleInformation.fields %}
+            {% for field in fields %}
+                <tr data-name="{{ fieldLayoutName }}-{{ field.name }}">
+                    <th data-title="Naam">
+                        {{ field.name }}
+                    </th>
+                    <td data-title="Handle">
+                        {{ field.handle }}
+                    </td>
+                    <td data-title="Type">
+                        <span class="light">{{ field.type }}</span>
+                    </td>
+                    <td data-title="Groep">
+                        <span class="light">{{ fieldLayoutName }}</span>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>

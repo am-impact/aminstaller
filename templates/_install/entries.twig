@@ -1,25 +1,32 @@
 <div id="tab-entries" class="hidden">
     <h1>Entries</h1>
 
-    {% for field in moduleInformation.entries %}
-        {% switch field.type %}
+    {% for sectionName, section in moduleInformation.sections %}
+        {% if attribute(moduleInformation.entries, sectionName) is defined %}
+            <hr>
+            <h2>{{ section.name }} ({{ section.type }}): {{ section.label }}</h2>
 
-            {% case 'checkbox' %}
-                {{ forms.checkboxField({
-                    label: field.label,
-                    name: field.name,
-                    value: field.value,
-                    checked: field.checked
-                }) }}
+            {% for field in attribute(moduleInformation.entries, sectionName) %}
+                {% switch field.type %}
 
-            {% case 'select' %}
-                {{ forms.selectField({
-                    label: field.label,
-                    name: field.name,
-                    value: field.value,
-                    options: field.options
-                }) }}
+                    {% case 'checkbox' %}
+                        {{ forms.checkboxField({
+                            label: field.label,
+                            name: field.name,
+                            value: field.value,
+                            checked: field.checked
+                        }) }}
 
-        {% endswitch %}
+                    {% case 'select' %}
+                        {{ forms.selectField({
+                            label: field.label,
+                            name: field.name,
+                            value: field.value,
+                            options: field.options
+                        }) }}
+
+                {% endswitch %}
+            {% endfor %}
+        {% endif %}
     {% endfor %}
 </div>

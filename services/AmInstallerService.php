@@ -84,7 +84,7 @@ class AmInstallerService extends BaseApplicationComponent
             'medewerkers' => array(
                 'name'        => 'Medewerkers',
                 'description' => 'Medewerkers overzicht en medewerkers.',
-                'installed'  => $this->_isModuleInstalled('medewerkers')
+                'installed'   => $this->_isModuleInstalled('medewerkers')
             ),
             'news' => array(
                 'name'        => 'Nieuws',
@@ -122,75 +122,21 @@ class AmInstallerService extends BaseApplicationComponent
      */
     private function _getModuleInstallInformation($moduleName, &$moduleData)
     {
-        switch ($moduleName) {
-            case 'algemeen':
-                break;
-            case 'diensten':
-                break;
-            case 'medewerkers':
-                $moduleData['tabs'] = array(
-                    'installMain' => array(
-                        'label' => 'Algemeen',
-                        'url'   => '#tab-main'
-                    ),
-                    'installSections' => array(
-                        'label' => 'Secties',
-                        'url'   => '#tab-sections'
-                    ),
-                    'installEntries' => array(
-                        'label' => 'Entries',
-                        'url'   => '#tab-entries'
-                    )
-                );
-                $moduleData['main'] = array(
-                    array(
-                        'name'  => 'Aantal secties',
-                        'value' => 2
-                    ),
-                    array(
-                        'name'  => 'Type secties',
-                        'value' => 'Single & channel'
-                    )
-                );
-                $moduleData['sections'] = array(
-                    'overviewSection' => array(
-                        'type'      => 'Overzicht',
-                        'label'     => 'Medewerker overzicht',
-                        'urlFormat' => 'medewerkers',
-                        'info'      => 'Naam van het overzicht in de CP.'
-                    ),
-                    'entrySection' => array(
-                        'type'      => 'Entry',
-                        'label'     => 'Medewerker',
-                        'urlFormat' => 'medewerkers/{slug}',
-                        'info'      => 'Naam van de entry in de CP.'
-                    )
-                );
-                $moduleData['entries'] = array(
-                    array(
-                        'type'    => 'checkbox',
-                        'name'    => 'installTestEntries',
-                        'value'   => 1,
-                        'checked' => false,
-                        'label'   => 'Installeer test entries?'
-                    ),
-                    array(
-                        'type'    => 'select',
-                        'name'    => 'testEntriesAmount',
-                        'value'   => 1,
-                        'options' => array_combine(range(1,10), range(1,10)),
-                        'label'   => 'Het aantal te installeren entries'
-                    )
-                );
-                break;
-            case 'news':
-                break;
-            case 'producten':
-                break;
-            case 'referenties':
-                break;
-            case 'vacatures':
-                break;
+        $files = array(
+            'tabs',
+            'main',
+            'sections',
+            'fields',
+            'fieldLayout',
+            'templateGroup',
+            'entries'
+        );
+        foreach ($files as $file) {
+            $fileLocation = craft()->path->getPluginsPath() . 'aminstaller/resources/install/information/' . $moduleName . '/' . $file . '.php';
+            if (file_exists($fileLocation)) {
+                $fileContent = include($fileLocation);
+                $moduleData[$file] = $fileContent;
+            }
         }
     }
 }

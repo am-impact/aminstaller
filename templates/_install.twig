@@ -12,7 +12,9 @@
 
 {% set title = 'Module installatie: ' ~ moduleInformation.name %}
 
-{% set tabs = moduleInformation.tabs %}
+{% if moduleInformation.tabs is defined %}
+    {% set tabs = moduleInformation.tabs %}
+{% endif %}
 
 {% import "_includes/forms" as forms %}
 
@@ -20,6 +22,7 @@
     <form method="post" action="" accept-charset="UTF-8">
         <input type="hidden" name="action" value="amInstaller/install/installModule">
         <input type="hidden" name="redirect" value="aminstaller">
+        <input type="hidden" name="redirectOnError" value="aminstaller/install/{{ moduleName }}">
         <input type="hidden" name="module" value="{{ moduleName }}">
 
         <div id="tab-main">
@@ -30,15 +33,20 @@
             {% if moduleInformation.main is defined %}
                 {% include 'aminstaller/_install/main' %}
             {% endif %}
+
+            {# Display fields that'll be installed #}
+            {% if moduleInformation.fields is defined %}
+                {% include 'aminstaller/_install/fields' %}
+            {% endif %}
         </div>
 
         {# Display the sections that'll be installed #}
-        {% if moduleInformation.sections is defined %}
+        {% if moduleInformation.sections is defined and moduleInformation.templateGroup is defined %}
             {% include 'aminstaller/_install/sections' %}
         {% endif %}
 
-        {# Display the option to install test entries #}
-        {% if moduleInformation.entries is defined %}
+        {# Display the option to install test entries per section #}
+        {% if moduleInformation.entries is defined and moduleInformation.sections is defined %}
             {% include 'aminstaller/_install/entries' %}
         {% endif %}
 

@@ -1,16 +1,14 @@
 <div id="tab-sections" class="hidden">
     <h1>Secties</h1>
     <p>
-        <span class="">
         Hieronder worden de secties weergegeven die ge&iuml;nstalleerd zullen worden.<br>
         U kunt ervoor kiezen om de namen van deze secties aan te passen.
-        </span>
     </p>
-    <p class="warning">Let op: De template groep wordt aangemaakt op basis van de Entry sectie URI.</p>
+    <hr>
 
     {% for sectionName, section in moduleInformation.sections %}
         {{ forms.textField({
-            label: section.type ~ ': ' ~ section.label,
+            label: section.name ~ ' (' ~ section.type ~ '): ' ~ section.label,
             instructions: section.info,
             name: sectionName,
             value: section.label
@@ -21,8 +19,13 @@
             name: sectionName ~ 'UrlFormat',
             value: section.urlFormat
         }) }}
-        {% if not loop.last %}
-            <hr>
-        {% endif %}
+        <hr>
     {% endfor %}
+
+    {{ forms.textField({
+        label: moduleInformation.templateGroup.label,
+        instructions: moduleInformation.templateGroup.info,
+        name: moduleInformation.templateGroup.name,
+        value: moduleInformation.templateGroup.value
+    }) }}
 </div>
