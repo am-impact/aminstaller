@@ -5,7 +5,7 @@ return array(
             'type'    => 'checkbox',
             'name'    => 'installTestEntries',
             'value'   => 1,
-            'checked' => false,
+            'checked' => true,
             'label'   => 'Installeer test entries?'
         ),
         array(

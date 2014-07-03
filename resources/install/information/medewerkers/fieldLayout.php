@@ -3,8 +3,30 @@ return array(
     'entrySection' => array(
         'Content' => array(
             array(
+                'name'        => 'matrixTest',
+                'required'    => false,
+                'testContent' => array(
+                    array(
+                        'type' => 'blok1',
+                        'enabled' => '1',
+                        'fields' => array(
+                            'tekst' => 'Tekst 1',
+                            'nogEenTekst' => array('Nog een tekst 1', 'Nog een tekst 11', 'Nog een tekst 111', 'Nog een tekst 1111')
+                        )
+                    ),
+                    array(
+                        'type' => 'blok1',
+                        'enabled' => '1',
+                        'fields' => array(
+                            'tekst' => 'Tekst 2',
+                            'nogEenTekst' => 'Nog een tekst 2'
+                        )
+                    )
+                )
+            ),
+            array(
                 'name'        => 'afbeelding',
-                'required'    => true,
+                'required'    => false,
                 'testContent' => ''
             ),
             array(

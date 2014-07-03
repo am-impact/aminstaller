@@ -8,6 +8,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     private $currentFieldGroups;
     private $currentFields;
     private $currentFieldsTypes;
+    private $currentMatrixBlockTypes;
 
     /**
      * Install a module.
@@ -197,6 +198,36 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     }
 
     /**
+     * Get current Matrix Block Types.
+     *
+     * @param int    $fieldId
+     * @param string $typeHandle
+     */
+    private function _getMatrixBlockTypeId($fieldId, $typeHandle)
+    {
+        if (! isset($this->currentMatrixBlockTypes[$fieldId])) {
+            $results = craft()->db->createCommand()
+                ->select('id, fieldId, fieldLayoutId, name, handle, sortOrder')
+                ->from('matrixblocktypes')
+                ->where('fieldId = :fieldId', array(':fieldId' => $fieldId))
+                ->order('sortOrder')
+                ->queryAll();
+            foreach ($results as $result) {
+                $this->currentMatrixBlockTypes[$fieldId][ $result['id'] ] = $result['handle'];
+            }
+        }
+        if (isset($this->currentMatrixBlockTypes[$fieldId])) {
+            foreach ($this->currentMatrixBlockTypes as $fieldId => $types) {
+                $typeId = array_search($typeHandle, $types);
+                if ($typeId) {
+                    return $typeId;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Create all fields from a module.
      *
      * @param array $fields
@@ -368,14 +399,39 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     if (! isset($this->currentFieldsTypes[ $field['name'] ])) {
                         continue;
                     }
+                    // Only parse the content if we have any at all
+                    if (! isset($field['testContent'])) {
+                        continue;
+                    }
                     $fieldName = $field['name'];
-                    $content   = isset($field['testContent']) ? $field['testContent'] : '';
+                    $fieldId   = array_search($field['name'], $this->currentFields);
+                    $content   = $field['testContent'];
                     // Process the field based on it's type
                     switch ($this->currentFieldsTypes[$fieldName]) {
                         case 'Assets':
                             $attributes[$fieldName] = $content;
                             break;
                         case 'Matrix':
+                            foreach ($content as $blockModule) {
+                                // Get the Matrix Block Type ID based on current field and type from fieldLayout
+                                if(($typeId = $this->_getMatrixBlockTypeId($fieldId, $blockModule['type'])) !== false) {
+                                    // Create Matrix Block
+                                    $matrixBlock = new MatrixBlockModel();
+                                    $matrixBlock->fieldId = $fieldId;
+                                    $matrixBlock->typeId  = $typeId;
+                                    $matrixBlock->ownerId = $newEntry->id;
+                                    $matrixBlock->locale  = $locale;
+                                    // Create content for Matrix Block
+                                    $blockContent = array();
+                                    foreach ($blockModule['fields'] as $fieldHandle => $fieldValue) {
+                                        // TODO random test content kunnen plaatsen
+                                        $blockContent[$fieldHandle] = $fieldValue;
+                                    }
+                                    $matrixBlock->setContent($blockContent);
+                                    // Add block to Matrix Field
+                                    $attributes[$fieldName][] = $matrixBlock;
+                                }
+                            }
                             break;
                         default:
                             // Multiple test content

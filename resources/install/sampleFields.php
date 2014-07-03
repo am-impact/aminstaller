@@ -38,6 +38,36 @@ return array(
             )
         ),
         array(
+            'name'     => 'Matrix',
+            'handle'   => '',
+            'type'     => 'Matrix',
+            'settings' => array(
+                'maxBlocks' => '',
+                'blockTypes' => array(
+                    'new1' => array(
+                        'name' => 'Blok 1',
+                        'handle' => 'blok1',
+                        'fields' => array(
+                            'new1' => array(
+                                'name'         => 'PlainText',
+                                'handle'       => '',
+                                'required'     => false,
+                                'type'         => 'PlainText',
+                                'typesettings' => array()
+                            ),
+                            'new2' => array(
+                                'name'         => 'PlainText',
+                                'handle'       => '',
+                                'required'     => false,
+                                'type'         => 'PlainText',
+                                'typesettings' => array()
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+        array(
             'name'     => 'Number',
             'handle'   => '',
             'type'     => 'Number',
