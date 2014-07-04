@@ -266,6 +266,15 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 if (craft()->fields->saveField($newField)) {
                     $this->currentFields[$newField->id] = $newField->handle; // Add to current fields
                     $this->currentFieldsTypes[$newField->handle] = $newField->type; // Add to current fields types
+                    // Add Matrix Fields
+                    if ($newField->type == 'Matrix' && isset($field['settings']['blockTypes'])) {
+                        foreach ($field['settings']['blockTypes'] as $blockType) {
+                            foreach ($blockType['fields'] as $field) {
+                                $this->currentFields[ 'MatrixBlock-' . $newField->id ] = $field['handle']; // Add to current fields
+                                $this->currentFieldsTypes[ 'MatrixBlock-' . $newField->handle ] = $field['type']; // Add to current fields types
+                            }
+                        }
+                    }
                     AmInstallerPlugin::log(Craft::t('Field `{fieldName}` created successfully.', $vars));
                 } else {
                     AmInstallerPlugin::log(Craft::t('Could not save the `{fieldName}` field.', $vars), LogLevel::Warning);
@@ -403,43 +412,11 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     if (! isset($field['testContent'])) {
                         continue;
                     }
-                    $fieldName = $field['name'];
                     $fieldId   = array_search($field['name'], $this->currentFields);
-                    $content   = $field['testContent'];
-                    // Process the field based on it's type
-                    switch ($this->currentFieldsTypes[$fieldName]) {
-                        case 'Assets':
-                            $attributes[$fieldName] = $content;
-                            break;
-                        case 'Matrix':
-                            foreach ($content as $blockModule) {
-                                // Get the Matrix Block Type ID based on current field and type from fieldLayout
-                                if(($typeId = $this->_getMatrixBlockTypeId($fieldId, $blockModule['type'])) !== false) {
-                                    // Create Matrix Block
-                                    $matrixBlock = new MatrixBlockModel();
-                                    $matrixBlock->fieldId = $fieldId;
-                                    $matrixBlock->typeId  = $typeId;
-                                    $matrixBlock->ownerId = $newEntry->id;
-                                    $matrixBlock->locale  = $locale;
-                                    // Create content for Matrix Block
-                                    $blockContent = array();
-                                    foreach ($blockModule['fields'] as $fieldHandle => $fieldValue) {
-                                        // TODO random test content kunnen plaatsen
-                                        $blockContent[$fieldHandle] = $fieldValue;
-                                    }
-                                    $matrixBlock->setContent($blockContent);
-                                    // Add block to Matrix Field
-                                    $attributes[$fieldName][] = $matrixBlock;
-                                }
-                            }
-                            break;
-                        default:
-                            // Multiple test content
-                            if (is_array($content)) {
-                                $content = $content[ rand(0, (count($content) - 1)) ];
-                            }
-                            $attributes[$fieldName] = $content;
-                            break;
+                    $fieldName = $field['name'];
+                    $content   = $this->_getEntryContentForField($newEntry, $fieldId, $fieldName, $field['testContent']);
+                    if ($content) {
+                        $attributes[$fieldName] = $content;
                     }
                 }
             }
@@ -450,6 +427,64 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             } else {
                 AmInstallerPlugin::log(Craft::t('Could not save a new entry for the `{sectionName}` section.', $vars), LogLevel::Warning);
             }
+        }
+    }
+
+    /**
+     * Get the content for an Entry Field.
+     *
+     * @param object $entry
+     * @param int    $fieldId
+     * @param string $fieldName
+     * @param mixed  $testContent
+     *
+     * @return mixed Content or false on failure / unknown field.
+     */
+    private function _getEntryContentForField($entry, $fieldId, $fieldName, $testContent)
+    {
+        if (! isset($this->currentFieldsTypes[$fieldName])) {
+            return false;
+        }
+        switch ($this->currentFieldsTypes[$fieldName]) {
+            case 'Assets':
+                return $testContent;
+                break;
+            case 'Matrix':
+                $blocks = array();
+                foreach ($testContent as $blockModule) {
+                    // Get the Matrix Block Type ID based on current field and type from fieldLayout
+                    if(($typeId = $this->_getMatrixBlockTypeId($fieldId, $blockModule['type'])) !== false) {
+                        // Create Matrix Block
+                        $matrixBlock = new MatrixBlockModel();
+                        $matrixBlock->fieldId = $fieldId;
+                        $matrixBlock->typeId  = $typeId;
+                        $matrixBlock->ownerId = $entry->id;
+                        $matrixBlock->locale  = $entry->locale;
+                        // Create content for Matrix Block
+                        $blockContent = array();
+                        foreach ($blockModule['fields'] as $fieldHandle => $fieldValue) {
+                            // Get the field content based on the field's type
+                            $fieldContent = $this->_getEntryContentForField($entry, $fieldId, 'MatrixBlock-' . $fieldName, $fieldValue);
+                            if ($fieldContent) {
+                                $blockContent[$fieldHandle] = $fieldContent;
+                            }
+                        }
+                        $matrixBlock->setContent($blockContent);
+                        // Add block to Matrix Field
+                        $blocks[] = $matrixBlock;
+                    }
+                }
+                if (count($blocks)) {
+                    return $blocks;
+                }
+                break;
+            default:
+                // Multiple test content
+                if (is_array($testContent)) {
+                    $testContent = $testContent[ rand(0, (count($testContent) - 1)) ];
+                }
+                return $testContent;
+                break;
         }
     }
 

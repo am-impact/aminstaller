@@ -3,36 +3,40 @@
 {% set modules = craft.amInstaller.getModules() %}
 
 {% set body %}
-    <table id="modules" class="data fullwidth collapsible">
-        <thead>
-            <th scope="col">Module</th>
-            <th scope="col">Omschrijving</th>
-            <th scope="col">Status</th>
-            <td class="thin"></td>
-        </thead>
-        <tbody>
-            {% for handle, module in modules %}
-                <tr data-name="{{ module.name }}">
-                    <th data-title="Naam">
-                        {{ module.name }}
-                    </th>
-                    <td data-title="Omschrijving">
-                        <span class="light">{{ module.description }}</span>
-                    </td>
-                    <td data-title="Status">
-                        {% if module.installed %}
-                            <span class="status on"></span> Ge&iuml;nstalleerd
-                        {% else %}
-                            <span class="status"></span> <span class="light">Nog niet ge&iuml;nstalleerd</span>
-                        {% endif %}
-                    </td>
-                    <td class="thin rightalign nowrap">
-                        {% if not module.installed %}
-                            <a href="{{ url('aminstaller/install/' ~ handle) }}" class="btn small">Installeren</a>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% if not modules|length %}
+        <p>{{ 'There are no modules available at this moment.'|t }}</p>
+    {% else %}
+        <table id="modules" class="data fullwidth collapsible">
+            <thead>
+                <th scope="col">{{ 'Module'|t }}</th>
+                <th scope="col">{{ 'Description'|t }}</th>
+                <th scope="col">{{ 'Status'|t }}</th>
+                <td class="thin"></td>
+            </thead>
+            <tbody>
+                {% for handle, module in modules %}
+                    <tr data-name="{{ module.name }}">
+                        <th data-title="Naam">
+                            {{ module.name }}
+                        </th>
+                        <td data-title="Omschrijving">
+                            <span class="light">{{ module.description }}</span>
+                        </td>
+                        <td data-title="Status">
+                            {% if module.installed %}
+                                <span class="status on"></span> {{ 'Installed'|t }}
+                            {% else %}
+                                <span class="status"></span> <span class="light">{{ 'Not installed'|t }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="thin rightalign nowrap">
+                            {% if not module.installed %}
+                                <a href="{{ url('aminstaller/install/' ~ handle) }}" class="btn small">{{ 'Install'|t }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endset %}

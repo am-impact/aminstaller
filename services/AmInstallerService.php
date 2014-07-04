@@ -69,44 +69,22 @@ class AmInstallerService extends BaseApplicationComponent
     {
         // Find installed modules
         $this->_setInstalledModules();
-        // Set the information of every module
-        $availableModules = array(
-            'algemeen' => array(
-                'name'        => 'Algemeen',
-                'description' => 'Veel gebruikte velden toevoegen en standaard pagina\'s zoals contact, zoekresultaat en dergelijke.',
-                'installed'   => $this->_isModuleInstalled('algemeen')
-            ),
-            'diensten' => array(
-                'name'        => 'Diensten',
-                'description' => 'Dienst overzicht en diensten.',
-                'installed'   => $this->_isModuleInstalled('diensten')
-            ),
-            'medewerkers' => array(
-                'name'        => 'Medewerkers',
-                'description' => 'Medewerkers overzicht en medewerkers.',
-                'installed'   => $this->_isModuleInstalled('medewerkers')
-            ),
-            'news' => array(
-                'name'        => 'Nieuws',
-                'description' => 'Nieuws overzicht en nieuwsberichten.',
-                'installed'   => $this->_isModuleInstalled('news')
-            ),
-            'producten' => array(
-                'name'        => 'Producten',
-                'description' => 'Producten overzicht en producten.',
-                'installed'   => $this->_isModuleInstalled('producten')
-            ),
-            'referenties' => array(
-                'name'        => 'Referenties',
-                'description' => 'Referenties overzicht en referenties.',
-                'installed'   => $this->_isModuleInstalled('referenties')
-            ),
-            'vacatures' => array(
-                'name'        => 'Vacatures',
-                'description' => 'Vacatures overzicht en vacatures.',
-                'installed'   => $this->_isModuleInstalled('vacatures')
-            )
-        );
+        // Find available modules
+        $availableModules = array();
+        $dir = craft()->path->getPluginsPath() . 'aminstaller/resources/install/information/';
+        $handle = opendir($dir);
+        while (($file = readdir($handle)) !== false) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+            $moduleFile = $dir . $file . '/module.php';
+            if (file_exists($moduleFile)) {
+                $moduleContent = include($moduleFile);
+                $moduleContent['installed'] = $this->_isModuleInstalled($file);
+                $availableModules[$file] = $moduleContent;
+            }
+        }
+        closedir($handle);
         // Return all or a specific module
         if (! empty($getModuleByName)) {
             return isset($availableModules[$getModuleByName]) ? $availableModules[$getModuleByName] : false;
