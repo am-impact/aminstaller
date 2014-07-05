@@ -260,6 +260,15 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 $newField->translatable = true;
                 $newField->type         = $field['type'];
                 if (isset($field['settings'])) {
+                    // Check whether it's an Entries field type, which is connected to a section that might not exist
+                    if ($newField->type == 'Entries' && isset($field['settings']['section'])) {
+                        $sectionId = array_search($field['settings']['section'], $this->currentSections);
+                        if ($sectionId) {
+                            $sectionId = explode('-', $sectionId);
+                            $sectionId = $sectionId[0];
+                            $field['settings']['sources'] = array('section:' . $sectionId);
+                        }
+                    }
                     $newField->settings = $field['settings'];
                 }
 

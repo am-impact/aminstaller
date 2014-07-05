@@ -1,4 +1,21 @@
 <?php
+/**
+ * Field Layout
+ *
+ * This'll create the Field Layout for a section.
+ * You get to point out which section will get any tabs.
+ * After that you can add fields that should be shown there.
+ *
+ * For each field you can set some information:
+ * - name:        The handle of a field.
+ * - required:    Whether the field must contain data when creating / editing entries.
+ * - testContent: [Optional] If you have set the option of test entries to true, you'll be able to set the test content for this field.
+ *                           You can create an array of test content. The installer will randomly select one of the available options.
+ *
+ * In case of a Matrix field:
+ * - type:   The Matrix Block handle.
+ * - fields: An array with field handles with test content for that field.
+ */
 return array(
     'entrySection' => array(
         'Content' => array(

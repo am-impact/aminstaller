@@ -56,7 +56,7 @@ class AmInstallerPlugin extends BasePlugin
      */
     public function onAfterInstall()
     {
-        craft()->request->redirect('aminstaller');
+        craft()->request->redirect('../aminstaller');
     }
 
     /**

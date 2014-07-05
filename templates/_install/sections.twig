@@ -1,9 +1,6 @@
 <div id="tab-sections" class="hidden">
-    <h1>Secties</h1>
-    <p>
-        Hieronder worden de secties weergegeven die ge&iuml;nstalleerd zullen worden.<br>
-        U kunt ervoor kiezen om de namen van deze secties aan te passen.
-    </p>
+    <h1>{{ 'Sections'|t }}</h1>
+    <p>Hieronder worden de secties weergegeven die ge&iuml;nstalleerd zullen worden.</p>
     <hr>
 
     {% for sectionName, section in moduleInformation.sections %}
