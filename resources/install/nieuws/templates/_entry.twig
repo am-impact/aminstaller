@@ -1,0 +1,28 @@
+{% extends "_layout" %}
+
+{% if entry.afbeelding|length %}
+    {% set image = entry.afbeelding.first() %}
+    {% set imageParams = {
+        width: 650,
+        height: 320,
+        mode: 'crop',
+        position: 'center-center'
+    } %}
+{% endif %}
+
+{% block content %}
+    <h1>{{ entry.title }}</h1>
+
+    <time datetime="{{ entry.postDate|date('Y-m-d') }}">{{ entry.postDate|date('d F Y') }}</time>
+
+    {% if image is defined %}
+        <img src="{{ image.getUrl(imageParams) }}" alt="{{ entry.title }}">
+    {% endif %}
+
+    <div class="c-entry">
+        {{ entry.omschrijving }}
+        <div class="clear"></div>
+    </div>
+
+    <a href="{{ craft.entries.id(entryIds.##OVERZICHTID##).first().url }}" class="back">Nieuwsoverzicht</a>
+{% endblock %}

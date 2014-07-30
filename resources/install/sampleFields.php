@@ -81,6 +81,15 @@ return array(
             'type'     => 'PlainText'
         ),
         array(
+            'name'     => 'PlainText',
+            'handle'   => '',
+            'type'     => 'PlainText',
+            'settings' => array(
+                'multiline'   => 1,
+                'initialRows' => 4
+            )
+        ),
+        array(
             'name'     => 'RichText',
             'handle'   => '',
             'type'     => 'RichText',

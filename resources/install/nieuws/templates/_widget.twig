@@ -1,0 +1,28 @@
+{% set entries = craft.entries.section('##HANDLE##').order('postDate desc').limit(##AANTALWIDGET##) %}
+
+{% if not entries|length %}
+    <p>{{ 'Er is helaas geen informatie beschikbaar.'|t }}</p>
+{% else %}
+    {% set imageParams = {
+        width: 100,
+        height: 100,
+        mode: 'crop',
+        position: 'center-center'
+    } %}
+
+    {% for entry in entries %}
+        {% if entry.afbeelding|length %}
+            {% set image = entry.afbeelding.first() %}
+        {% endif %}
+
+        <time datetime="{{ entry.postDate|date('Y-m-d') }}">{{ entry.postDate|date('d F') }}</time>
+
+        <a href="{{ entry.url }}">{{ entry.title }}</a>
+
+        {% if image is defined %}
+            <img src="{{ image.getUrl(imageParams) }}" alt="{{ entry.title }}">
+        {% endif %}
+
+        <p>{{ entry.intro }}</p>
+    {% endfor %}
+{% endif %}

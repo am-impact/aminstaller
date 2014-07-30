@@ -71,7 +71,7 @@ class AmInstallerService extends BaseApplicationComponent
         $this->_setInstalledModules();
         // Find available modules
         $availableModules = array();
-        $dir = craft()->path->getPluginsPath() . 'aminstaller/resources/install/information/';
+        $dir = craft()->path->getPluginsPath() . 'aminstaller/resources/install/';
         $handle = opendir($dir);
         while (($file = readdir($handle)) !== false) {
             if ($file === '.' || $file === '..') {
@@ -104,13 +104,14 @@ class AmInstallerService extends BaseApplicationComponent
             'tabs',
             'main',
             'sections',
+            'globals',
             'fields',
             'fieldLayout',
             'templateGroup',
             'entries'
         );
         foreach ($files as $file) {
-            $fileLocation = craft()->path->getPluginsPath() . 'aminstaller/resources/install/information/' . $moduleName . '/' . $file . '.php';
+            $fileLocation = craft()->path->getPluginsPath() . 'aminstaller/resources/install/' . $moduleName . '/' . $file . '.php';
             if (file_exists($fileLocation)) {
                 $fileContent = include($fileLocation);
                 $moduleData[$file] = $fileContent;

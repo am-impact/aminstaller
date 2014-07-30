@@ -1,0 +1,34 @@
+{% extends '_layout' %}
+
+{% set imageParams = {
+    width: 100,
+    height: 100,
+    mode: 'crop',
+    position: 'center-center'
+} %}
+
+{% block content %}
+    {% paginate craft.entries.section('##HANDLE##').order('postDate desc').limit(aantalWeergaven.##AANTALOVERZICHT##) as entries %}
+        {% if not entries|length %}
+            <p>{{ 'Er is helaas geen informatie beschikbaar.'|t }}</p>
+        {% else %}
+            {% for entry in entries %}
+                {% if entry.afbeelding|length %}
+                    {% set image = entry.afbeelding.first() %}
+                {% endif %}
+
+                <time datetime="{{ entry.postDate|date('Y-m-d') }}">{{ entry.postDate|date('d F') }}</time>
+
+                <a href="{{ entry.url }}">{{ entry.title }}</a>
+
+                {% if image is defined %}
+                    <img src="{{ image.getUrl(imageParams) }}" alt="{{ entry.title }}">
+                {% endif %}
+
+                <p>{{ entry.intro }}</p>
+            {% endfor %}
+
+            {% include '_includes/pagination' %}
+        {% endif %}
+    {% endpaginate %}
+{% endblock %}

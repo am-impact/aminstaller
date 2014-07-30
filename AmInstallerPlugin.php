@@ -16,7 +16,7 @@ class AmInstallerPlugin extends BasePlugin
 
     public function getVersion()
     {
-        return '0.1';
+        return '0.2';
     }
 
     public function getDeveloper()
@@ -52,10 +52,22 @@ class AmInstallerPlugin extends BasePlugin
     }
 
     /**
+     * Redirect to plugins page if the user's license isn't good enough.
+     */
+    public function onBeforeInstall()
+    {
+        if (craft()->getEdition() == Craft::Personal) {
+            craft()->userSession->setNotice(Craft::t('You can\'t use “{plugin}” with the Craft personal license.', array('plugin' => $this->getName())));
+            craft()->request->redirect('plugins');
+        }
+    }
+
+    /**
      * Redirect to plugin after install.
      */
     public function onAfterInstall()
     {
+        craft()->userSession->setNotice(Craft::t('Plugin installed.'));
         craft()->request->redirect('../aminstaller');
     }
 
