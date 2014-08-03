@@ -10,10 +10,20 @@
     {% exit 404 %}
 {% endif %}
 
-{% set title = 'Module installatie: ' ~ moduleInformation.name %}
+{% set title = 'Module installation'|t ~ ': ' ~ moduleInformation.name %}
 
-{% if moduleInformation.tabs is defined %}
-    {% set tabs = moduleInformation.tabs %}
+{% set tabs = { 'installMain': { 'label': 'Main'|t, 'url': '#tab-main' } } %}
+{% if moduleInformation.fields is defined %}
+    {% set tabs = tabs|merge({ 'installFields': { 'label': 'Fields'|t, 'url': '#tab-fields' } }) %}
+{% endif %}
+{% if moduleInformation.globals is defined %}
+    {% set tabs = tabs|merge({ 'installGlobals': { 'label': 'Globals'|t, 'url': '#tab-globals' } }) %}
+{% endif %}
+{% if moduleInformation.sections is defined and moduleInformation.templateGroup is defined %}
+    {% set tabs = tabs|merge({ 'installSections': { 'label': 'Sections'|t, 'url': '#tab-sections' } }) %}
+{% endif %}
+{% if moduleInformation.entries is defined and moduleInformation.sections is defined %}
+    {% set tabs = tabs|merge({ 'installEntries': { 'label': 'Entries'|t, 'url': '#tab-entries' } }) %}
 {% endif %}
 
 {% import "_includes/forms" as forms %}
@@ -26,19 +36,24 @@
         <input type="hidden" name="module" value="{{ moduleName }}">
 
         <div id="tab-main">
-            <h1>Algemeen</h1>
+            <h1>{{ 'Main'|t }}</h1>
             <p>{{ moduleInformation.description }}</p>
 
             {# Display some information about the module installation #}
             {% if moduleInformation.main is defined %}
                 {% include 'aminstaller/_install/main' %}
             {% endif %}
-
-            {# Display fields that'll be installed #}
-            {% if moduleInformation.fields is defined %}
-                {% include 'aminstaller/_install/fields' %}
-            {% endif %}
         </div>
+
+        {# Display fields that'll be installed #}
+        {% if moduleInformation.fields is defined %}
+            {% include 'aminstaller/_install/fields' %}
+        {% endif %}
+
+        {# Display globals that'll be installed #}
+        {% if moduleInformation.globals is defined %}
+            {% include 'aminstaller/_install/globals' %}
+        {% endif %}
 
         {# Display the sections that'll be installed #}
         {% if moduleInformation.sections is defined and moduleInformation.templateGroup is defined %}
@@ -51,8 +66,8 @@
         {% endif %}
 
         <div class="buttons">
-            <input class="btn submit" type="submit" value="Installeren" />
-            <input type="button" class="btn delete" value="Annuleren" onclick="history.back()" />
+            <input class="btn submit" type="submit" value="{{ 'Install'|t }}" />
+            <input type="button" class="btn delete" value="{{ 'Cancel'|t }}" onclick="history.back()" />
         </div>
     </form>
 {% endset %}

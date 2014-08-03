@@ -2,6 +2,8 @@
 /**
  * Field Layout
  *
+ * This file is optional for installing sections.
+ *
  * This'll create the Field Layout for a section.
  * You get to point out which section will get any tabs.
  * After that you can add fields that should be shown there.

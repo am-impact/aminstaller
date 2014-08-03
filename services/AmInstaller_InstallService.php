@@ -22,13 +22,14 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     {
         // Get module install information
         $moduleInformation = craft()->amInstaller->getModule($moduleName, true);
+        $module = AmInstaller_ModuleModel::populateModel($moduleInformation);
         // Get current craft data
         $this->_setCurrentSections();
         $this->_setCurrentFieldGroups();
         $this->_setCurrentFields();
         $this->_setCurrentGlobalSets();
         // Install the module
-        $result = $this->_installModule($moduleName, $moduleInformation);
+        $result = $this->_installModule($moduleName, $module);
         // Add the module to the database, as installed
         if ($result) {
             $result = $this->_addModuleToDatabase($moduleName);
@@ -68,6 +69,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
      */
     private function _setReturnMessage($message)
     {
+        AmInstallerPlugin::log($message);
         $this->returnMessage = $message;
     }
 
@@ -311,6 +313,10 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     $vars['fieldName'] = $field['name'];
                     // Edit the field handle
                     $field['handle'] = $this->_camelString(Craft::t($field['handle'], $vars));
+                    // Edit the field instructions
+                    if (isset($field['instructions'])) {
+                        $field['instructions'] = Craft::t($field['instructions'], $vars);
+                    }
                     // Edit the field value
                     if (isset($field['value'])) {
                         $field['value'] = Craft::t($field['value'], $vars);
@@ -670,59 +676,76 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     /**
      * Install module.
      *
-     * @param string $moduleName
-     * @param array  $moduleInformation
+     * @param string      $moduleName
+     * @param ModuleModel $moduleInformation
      *
      * @return bool Installation result.
      */
     private function _installModule($moduleName, $moduleInformation)
     {
-        // Check section availability
-        $sectionResult = $this->_checkSectionAvailability($moduleInformation['sections']);
-        if (! $sectionResult) {
-            AmInstallerPlugin::log('One of the sections that was about to be installed, already exists.');
-            $this->_setReturnMessage('Eén van de aangegeven secties bestaat al.');
-            return false;
-        }
-        // Gather install information
-        $templateGroupName = craft()->request->getPost($moduleInformation['templateGroup']['name'], false);
-        if (! $templateGroupName || empty($templateGroupName)) {
-            AmInstallerPlugin::log('The template group field doesn\'t contain correct data.');
-            $this->_setReturnMessage('De template groep voor de secties bevat geen goede data.');
-            return false;
-        }
-        $primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
-        $templateGroupName = $this->_uriString($templateGroupName);
         // Install fields
-        $this->_createFields($moduleInformation['fields']);
-        // Install sections
-        $installedSections = array();
-        foreach ($sectionResult as $sectionKey => $sectionValues) {
-            // Add section
-            $hasUrls = ($sectionValues['type'] != SectionType::Single);
-            $addToTemplateGroupName = ($sectionValues['type'] != SectionType::Single) ? '/_entry' : '';
-            $createdSection = $this->_createSection($sectionValues['name'], $sectionValues['type'], $hasUrls, $templateGroupName . $addToTemplateGroupName, $primaryLocaleId, $sectionValues['urlFormat']);
-            $installedSections[$sectionKey] = $createdSection;
-            // Add field layout
-            $fieldLayout = isset($moduleInformation['fieldLayout'][$sectionKey]) ? $moduleInformation['fieldLayout'][$sectionKey] : array();
-            $createdLayout = $this->_createFieldLayout($fieldLayout);
-            // Add entry type
-            $createdEntryType = $this->_createEntryType($createdSection, $createdLayout);
-            // Add entries
-            if (isset($moduleInformation['entries'][$sectionKey]) && count($fieldLayout)) {
-                $installTestEntries = craft()->request->getPost('installTestEntries', '0') == '1';
-                if ($installTestEntries) {
-                    $totalTestEntries = (int)craft()->request->getPost('totalTestEntries', 1);
-                    $this->_createEntries($totalTestEntries, $primaryLocaleId, $createdSection, $fieldLayout, $createdEntryType);
+        if (! is_null($moduleInformation->fields)) {
+            $this->_createFields($moduleInformation->fields);
+        }
+        // Install sections & templates
+        $installedSections = array(); // Variable is used by the globals installation as well
+        if (! is_null($moduleInformation->sections)) {
+            // The template group is required
+            if (is_null($moduleInformation->templateGroup)) {
+                $this->_setReturnMessage(Craft::t('If you wish to install sections, a `templateGroup` file is required.'));
+                return false;
+            }
+            // Check section availability
+            $sectionResult = $this->_checkSectionAvailability($moduleInformation->sections);
+            if (! $sectionResult) {
+                $this->_setReturnMessage(Craft::t('One of the sections that was about to be installed, already exists.'));
+                return false;
+            }
+            // Gather install information
+            $templateGroupName = craft()->request->getPost('templateGroup', false);
+            if (! $templateGroupName || empty($templateGroupName)) {
+                $this->_setReturnMessage(Craft::t('The template group field doesn\'t contain correct data.'));
+                return false;
+            }
+            $primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
+            $templateGroupName = $this->_uriString($templateGroupName);
+
+            // Install sections
+            foreach ($sectionResult as $sectionKey => $sectionValues) {
+                // Add section
+                $hasUrls = ($sectionValues['type'] != SectionType::Single);
+                $addToTemplateGroupName = ($sectionValues['type'] != SectionType::Single) ? '/_entry' : '';
+                $createdSection = $this->_createSection($sectionValues['name'], $sectionValues['type'], $hasUrls, $templateGroupName . $addToTemplateGroupName, $primaryLocaleId, $sectionValues['urlFormat']);
+                $installedSections[$sectionKey] = $createdSection;
+
+                // Add field layout if available, otherwise an empty layout
+                $fieldLayout = array();
+                if (! is_null($moduleInformation->fieldLayout) && isset($moduleInformation->fieldLayout[$sectionKey])) {
+                    $fieldLayout = $moduleInformation->fieldLayout[$sectionKey];
+                }
+                $createdLayout = $this->_createFieldLayout($fieldLayout);
+
+                // Add entry type
+                $createdEntryType = $this->_createEntryType($createdSection, $createdLayout);
+
+                // Add entries
+                if (! is_null($moduleInformation->entries) && isset($moduleInformation->entries[$sectionKey]) && count($fieldLayout)) {
+                    $installTestEntries = craft()->request->getPost($sectionKey . 'installTestEntries', '0') == '1';
+                    if ($installTestEntries) {
+                        $totalTestEntries = (int)craft()->request->getPost($sectionKey . 'totalTestEntries', 1);
+                        $this->_createEntries($totalTestEntries, $primaryLocaleId, $createdSection, $fieldLayout, $createdEntryType);
+                    }
                 }
             }
+
+            // Install templates
+            $this->_createTemplateGroup($moduleName, $templateGroupName);
         }
+
         // Install globals
-        if (isset($moduleInformation['globals'])) {
-            $this->_createGlobals($moduleInformation['globals'], $installedSections);
+        if (! is_null($moduleInformation->globals)) {
+            $this->_createGlobals($moduleInformation->globals, $installedSections);
         }
-        // Install templates
-        $this->_createTemplateGroup($moduleName, $templateGroupName);
         return true;
     }
 }

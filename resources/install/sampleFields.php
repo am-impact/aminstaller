@@ -1,6 +1,6 @@
 <?php
 return array(
-    'Standaard' => array(
+    'FieldGroupName' => array(
         array(
             'name'     => 'Assets',
             'handle'   => '',

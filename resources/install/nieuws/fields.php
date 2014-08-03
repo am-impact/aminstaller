@@ -11,7 +11,7 @@
  * Since the handle is the only thing that is unique about a field,
  * you have to set the name yourself. Make sure it's a camelCasedName!
  *
- * If you add an instruction key to the Field's array, that field will
+ * If you add an `instructions` key to the Field's array, that field will
  * show instructions that users will see when creating / editing entries.
  */
 return array(

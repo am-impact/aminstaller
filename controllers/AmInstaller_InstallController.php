@@ -19,14 +19,14 @@ class AmInstaller_InstallController extends BaseController
         if ($moduleName) {
             $result = craft()->amInstaller_install->installModule($moduleName);
             if ($result) {
-                craft()->userSession->setNotice('De module is succesvol geïnstalleerd.');
+                craft()->userSession->setNotice(Craft::t('Module successfully installed.'));
                 $this->redirectToPostedUrl();
             }
         }
         if (($returnMessage = craft()->amInstaller_install->returnMessage) !== '') {
             craft()->userSession->setError($returnMessage);
         } else {
-            craft()->userSession->setError('De module kon niet geïnstalleerd worden.');
+            craft()->userSession->setError(Craft::t('Module couldn\'t be installed.'));
         }
         // Redirect to correct URL
         if ($redirectUrlOnError) {

@@ -2,23 +2,16 @@
 /**
  * Entries
  *
- * This'll create the fields to add test entries to a section.
+ * This file is optional for installing sections.
+ *
+ * This'll set the settings for installing dummy entries.
+ *
+ * You get to point out which section will get the option
+ * to install dummy entries.
  */
 return array(
     'entrySection' => array(
-        array(
-            'type'    => 'checkbox',
-            'name'    => 'installTestEntries',
-            'value'   => 1,
-            'checked' => true,
-            'label'   => 'Installeer test entries?'
-        ),
-        array(
-            'type'    => 'select',
-            'name'    => 'totalTestEntries',
-            'value'   => 1,
-            'options' => array_combine(range(1,10), range(1,10)),
-            'label'   => 'Het aantal te installeren entries'
-        )
+        'installTestEntries' => true,
+        'totalTestEntries'   => 1
     )
 );

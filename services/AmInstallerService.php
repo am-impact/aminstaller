@@ -72,6 +72,9 @@ class AmInstallerService extends BaseApplicationComponent
         // Find available modules
         $availableModules = array();
         $dir = craft()->path->getPluginsPath() . 'aminstaller/resources/install/';
+        if (! is_dir($dir)) {
+            return false;
+        }
         $handle = opendir($dir);
         while (($file = readdir($handle)) !== false) {
             if ($file === '.' || $file === '..') {

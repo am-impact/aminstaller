@@ -1,0 +1,36 @@
+<div id="tab-globals" class="hidden">
+    <h1>{{ 'Globals'|t }}</h1>
+    <p>{{ 'Globals that\'ll be installed with fields, if not already available'|t }}</p>
+
+    {% for globalSetName, fields in moduleInformation.globals %}
+        <hr>
+        <h2>{{ globalSetName }}</h2>
+
+        <table id="information-fields-{{ loop.index0 }}" class="data fullwidth collapsible">
+            <thead>
+                <th scope="col">{{ 'Name'|t }}</th>
+                <th scope="col">{{ 'Handle'|t }}</th>
+                <th scope="col">{{ 'Type'|t }}</th>
+                <th scope="col">{{ 'Group'|t }}</th>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                    <tr data-name="{{ globalSetName }}-{{ field.name }}">
+                        <th data-title="Naam">
+                            {{ field.name }}
+                        </th>
+                        <td data-title="Handle">
+                            {{ field.handle }}
+                        </td>
+                        <td data-title="Type">
+                            <span class="light">{{ field.type }}</span>
+                        </td>
+                        <td data-title="Groep">
+                            <span class="light">{{ globalSetName }}</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+</div>

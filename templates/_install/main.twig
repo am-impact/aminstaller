@@ -1,16 +1,16 @@
 <hr>
 
-<h2>Installatie informatie</h2>
+<h2>{{ 'Installation information'|t }}</h2>
 
 <table id="information-main" class="data fullwidth collapsible">
     <thead>
-        <th scope="col">Actie</th>
-        <th scope="col">Waarde</th>
+        <th scope="col">{{ 'Name'|t }}</th>
+        <th scope="col">{{ 'Value'|t }}</th>
     </thead>
     <tbody>
         {% for info in moduleInformation.main %}
             <tr data-name="{{ info.name }}">
-                <th data-title="Actie">
+                <th data-title="Naam">
                     {{ info.name }}
                 </th>
                 <td data-title="Waarde">

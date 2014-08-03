@@ -1,32 +1,28 @@
 <div id="tab-entries" class="hidden">
-    <h1>Entries</h1>
+    <h1>{{ 'Entries'|t }}</h1>
 
     {% for sectionName, section in moduleInformation.sections %}
         {% if attribute(moduleInformation.entries, sectionName) is defined %}
+            {% set settings = attribute(moduleInformation.entries, sectionName) %}
+            {% set installEntries = settings.installTestEntries is defined ? settings.installTestEntries : false %}
+            {% set totalEntries = settings.totalTestEntries is defined ? settings.totalTestEntries : 1 %}
+
             <hr>
             <h2>{{ section.name }} ({{ section.type }}): {{ section.label }}</h2>
 
-            {% for field in attribute(moduleInformation.entries, sectionName) %}
-                {% switch field.type %}
+            {{ forms.checkboxField({
+                label: 'Install dummy entries'|t,
+                name: sectionName ~ 'installTestEntries',
+                value: 1,
+                checked: installEntries
+            }) }}
 
-                    {% case 'checkbox' %}
-                        {{ forms.checkboxField({
-                            label: field.label,
-                            name: field.name,
-                            value: field.value,
-                            checked: field.checked
-                        }) }}
-
-                    {% case 'select' %}
-                        {{ forms.selectField({
-                            label: field.label,
-                            name: field.name,
-                            value: field.value,
-                            options: field.options
-                        }) }}
-
-                {% endswitch %}
-            {% endfor %}
+            {{ forms.selectField({
+                label: 'The amount of entries to install'|t,
+                name: sectionName ~ 'totalTestEntries',
+                value: totalEntries,
+                options: range(0, 10)
+            }) }}
         {% endif %}
     {% endfor %}
 </div>

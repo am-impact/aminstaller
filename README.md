@@ -4,6 +4,17 @@ _Install modules in Craft that'll create most things you need, automatically_
 
 ## Changelog
 
+
+### v0.3
+
+- Ability to install parts, rather than the whole package (E.g.: only install fields or globals).
+- Simplified some of the installation logic that was defined in module files.
+- Globals added as a new tab page in the installation overview.
+- Fields now has it's own tab page in the installation overview.
+- A tabs file for a module is no longer required.
+- Module files explanations added.
+- Everything that wasn't translated, is now translated.
+
 ### v0.2
 
 - Only allow the plugin to be installed if the user doesn't have a personal Craft license.

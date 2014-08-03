@@ -13,7 +13,9 @@ class AmInstaller_ModuleModel extends BaseModel
             'tabs'          => AttributeType::Enum,
             'main'          => AttributeType::Enum,
             'sections'      => AttributeType::Enum,
+            'globals'       => AttributeType::Enum,
             'fields'        => AttributeType::Enum,
+            'fieldLayout'   => AttributeType::Enum,
             'templateGroup' => AttributeType::Enum,
             'entries'       => AttributeType::Enum
         );

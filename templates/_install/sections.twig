@@ -1,18 +1,18 @@
 <div id="tab-sections" class="hidden">
     <h1>{{ 'Sections'|t }}</h1>
-    <p>Hieronder worden de secties weergegeven die ge&iuml;nstalleerd zullen worden.</p>
+    <p>{{ 'The sections that\'ll be installed.'|t }}</p>
     <hr>
 
     {% for sectionName, section in moduleInformation.sections %}
         {{ forms.textField({
-            label: section.name ~ ' (' ~ section.type ~ '): ' ~ section.label,
+            label: section.label ~ ' (' ~ section.type ~ '): ' ~ section.name,
             instructions: section.info,
             name: sectionName,
-            value: section.label
+            value: section.name
         }) }}
         {{ forms.textField({
-            label: 'URL-Formaat',
-            instructions: 'Hoe de entry URL eruit zou moeten zien.',
+            label: 'URL Format'|t,
+            instructions: 'What the entry URLs should look like.'|t,
             name: sectionName ~ 'UrlFormat',
             value: section.urlFormat
         }) }}
@@ -20,9 +20,9 @@
     {% endfor %}
 
     {{ forms.textField({
-        label: moduleInformation.templateGroup.label,
-        instructions: moduleInformation.templateGroup.info,
-        name: moduleInformation.templateGroup.name,
+        label: 'Template group name'|t,
+        instructions: 'This value will be used to create a folder with the necessary templates.'|t,
+        name: 'templateGroup',
         value: moduleInformation.templateGroup.value
     }) }}
 </div>
