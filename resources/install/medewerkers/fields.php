@@ -47,10 +47,11 @@ return array(
             )
         ),
         array(
-            'name'     => 'Afbeelding',
-            'handle'   => 'afbeelding',
-            'type'     => 'Assets',
-            'settings' => array(
+            'name'         => 'Afbeelding',
+            'handle'       => 'afbeelding',
+            'type'         => 'Assets',
+            'translatable' => false,
+            'settings'     => array(
                 'restrictFiles' => 1,
                 'allowedKinds'  => array('image'),
                 'limit'         => 1

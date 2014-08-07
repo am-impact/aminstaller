@@ -102,6 +102,20 @@ return array(
                 'name'        => 'youtubeUrl',
                 'required'    => false
             )
+        ),
+        'SEO' => array(
+            array(
+                'name'        => 'seoTitle',
+                'required'    => false
+            ),
+            array(
+                'name'        => 'seoDescription',
+                'required'    => false
+            ),
+            array(
+                'name'        => 'seoKeywords',
+                'required'    => false
+            )
         )
     )
 );
