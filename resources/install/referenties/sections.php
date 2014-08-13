@@ -16,7 +16,7 @@ return array(
     'overviewSection' => array(
         'type'      => 'Single',
         'label'     => 'Overzicht',
-        'name'      => 'Referentie overzicht',
+        'name'      => 'Referenties',
         'urlFormat' => 'referenties',
         'info'      => 'Naam van het overzicht in de CP.'
     ),

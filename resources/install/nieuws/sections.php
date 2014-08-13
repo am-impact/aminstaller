@@ -17,7 +17,7 @@ return array(
     'overviewSection' => array(
         'type'      => 'Single',
         'label'     => 'Overzicht',
-        'name'      => 'Nieuws overzicht',
+        'name'      => 'Nieuws',
         'urlFormat' => 'nieuws',
         'info'      => 'Naam van het overzicht in de CP.'
     ),

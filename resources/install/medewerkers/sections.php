@@ -16,7 +16,7 @@ return array(
     'overviewSection' => array(
         'type'      => 'Single',
         'label'     => 'Overzicht',
-        'name'      => 'Medewerker overzicht',
+        'name'      => 'Medewerkers',
         'urlFormat' => 'medewerkers',
         'info'      => 'Naam van het overzicht in de CP.'
     ),
