@@ -15,7 +15,7 @@
  * show instructions that users will see when creating / editing entries.
  */
 return array(
-    'Standaard' => array(,
+    'Standaard' => array(
         array(
             'name'         => 'Logo',
             'handle'       => 'logo',
