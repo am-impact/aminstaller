@@ -4,12 +4,13 @@ namespace Craft;
 class AmInstaller_InstallService extends BaseApplicationComponent
 {
     public $returnMessage = '';
-    private $currentSections = array();
-    private $currentFieldGroups = array();
-    private $currentFields = array();
-    private $currentFieldsTypes = array();
-    private $currentMatrixBlockTypes = array();
-    private $currentGlobalSets = array();
+    private $_currentSections = array();
+    private $_currentFieldGroups = array();
+    private $_currentFields = array();
+    private $_currentFieldsTypes = array();
+    private $_currentFieldTypes = array();
+    private $_currentMatrixBlockTypes = array();
+    private $_currentGlobalSets = array();
 
     /**
      * Install a module.
@@ -27,6 +28,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
         $this->_setCurrentSections();
         $this->_setCurrentFieldGroups();
         $this->_setCurrentFields();
+        $this->_setCurrentFieldTypes();
         $this->_setCurrentGlobalSets();
         // Install the module
         $result = $this->_installModule($moduleName, $module);
@@ -110,9 +112,9 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     {
         $sections = craft()->sections->getAllSections();
         foreach ($sections as $section) {
-            $this->currentSections[ $section->id . '-name' ]      = $section->name;
-            $this->currentSections[ $section->id . '-handle' ]    = $section->handle;
-            $this->currentSections[ $section->id . '-urlFormat' ] = $section->urlFormat;
+            $this->_currentSections[ $section->id . '-name' ]      = $section->name;
+            $this->_currentSections[ $section->id . '-handle' ]    = $section->handle;
+            $this->_currentSections[ $section->id . '-urlFormat' ] = $section->urlFormat;
         }
     }
 
@@ -138,7 +140,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 if (! $sectionName || ! $sectionUrlFormat) {
                     return false;
                 }
-                elseif (in_array($sectionName, $this->currentSections) || in_array($this->_camelString($sectionName), $this->currentSections) || in_array($sectionUrlFormat, $this->currentSections)) {
+                elseif (in_array($sectionName, $this->_currentSections) || in_array($this->_camelString($sectionName), $this->_currentSections) || in_array($sectionUrlFormat, $this->_currentSections)) {
                     return false;
                 }
                 $available[$sectionKey] = array(
@@ -159,7 +161,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     {
         $fieldGroups = craft()->fields->getAllGroups();
         foreach ($fieldGroups as $fieldGroup) {
-            $this->currentFieldGroups[$fieldGroup->id] = $fieldGroup->name;
+            $this->_currentFieldGroups[$fieldGroup->id] = $fieldGroup->name;
         }
     }
 
@@ -172,7 +174,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
      */
     private function _getFieldGroupId($name)
     {
-        $fieldGroupId = array_search($name, $this->currentFieldGroups);
+        $fieldGroupId = array_search($name, $this->_currentFieldGroups);
         if (! $fieldGroupId) {
             $group = new FieldGroupModel();
             $group->name = $name;
@@ -180,7 +182,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 'groupName' => $name
             );
             if (craft()->fields->saveGroup($group)) {
-                $this->currentFieldGroups[$group->id] = $group->name; // Add to current field groups
+                $this->_currentFieldGroups[$group->id] = $group->name; // Add to current field groups
                 AmInstallerPlugin::log(Craft::t('Field group `{groupName}` created successfully.', $vars));
             } else {
                 AmInstallerPlugin::log(Craft::t('Could not save the `{groupName}` field group.', $vars), LogLevel::Warning);
@@ -197,9 +199,17 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     {
         $fields = craft()->fields->getAllFields();
         foreach ($fields as $field) {
-            $this->currentFields[$field->id] = $field->handle;
-            $this->currentFieldsTypes[$field->handle] = $field->type;
+            $this->_currentFields[$field->id] = $field->handle;
+            $this->_currentFieldsTypes[$field->handle] = $field->type;
         }
+    }
+
+    /**
+     * Get current installed field types.
+     */
+    private function _setCurrentFieldTypes()
+    {
+        $this->_currentFieldTypes = craft()->fields->getAllFieldTypes();
     }
 
     /**
@@ -210,7 +220,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
      */
     private function _getMatrixBlockTypeId($fieldId, $typeHandle)
     {
-        if (! isset($this->currentMatrixBlockTypes[$fieldId])) {
+        if (! isset($this->_currentMatrixBlockTypes[$fieldId])) {
             $results = craft()->db->createCommand()
                 ->select('id, fieldId, fieldLayoutId, name, handle, sortOrder')
                 ->from('matrixblocktypes')
@@ -218,11 +228,11 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 ->order('sortOrder')
                 ->queryAll();
             foreach ($results as $result) {
-                $this->currentMatrixBlockTypes[$fieldId][ $result['id'] ] = $result['handle'];
+                $this->_currentMatrixBlockTypes[$fieldId][ $result['id'] ] = $result['handle'];
             }
         }
-        if (isset($this->currentMatrixBlockTypes[$fieldId])) {
-            foreach ($this->currentMatrixBlockTypes as $fieldId => $types) {
+        if (isset($this->_currentMatrixBlockTypes[$fieldId])) {
+            foreach ($this->_currentMatrixBlockTypes as $fieldId => $types) {
                 $typeId = array_search($typeHandle, $types);
                 if ($typeId) {
                     return $typeId;
@@ -239,8 +249,8 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     {
         $globalSets = craft()->globals->getAllSets();
         foreach ($globalSets as $globalSet) {
-            $this->currentGlobalSets[ $globalSet->id . '-name' ] = $globalSet->name;
-            $this->currentGlobalSets[ $globalSet->id . '-handle' ] = $globalSet->handle;
+            $this->_currentGlobalSets[ $globalSet->id . '-name' ] = $globalSet->name;
+            $this->_currentGlobalSets[ $globalSet->id . '-handle' ] = $globalSet->handle;
         }
     }
 
@@ -253,7 +263,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
      */
     private function _getGlobalSet($name)
     {
-        $globalSetId = array_search($name, $this->currentGlobalSets);
+        $globalSetId = array_search($name, $this->_currentGlobalSets);
         if (! $globalSetId) {
             $vars = array(
                 'setName' => $name
@@ -262,8 +272,8 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             $globalSet->name   = $name;
             $globalSet->handle = $this->_camelString($name);
             if (craft()->globals->saveSet($globalSet)) {
-                $this->currentGlobalSets[$globalSet->id] = $globalSet->name; // Add to current global sets
-                $this->currentGlobalSets[$globalSet->id] = $globalSet->handle; // Add to current global sets
+                $this->_currentGlobalSets[$globalSet->id] = $globalSet->name; // Add to current global sets
+                $this->_currentGlobalSets[$globalSet->id] = $globalSet->handle; // Add to current global sets
                 AmInstallerPlugin::log(Craft::t('Global set `{setName}` created successfully.', $vars));
             } else {
                 AmInstallerPlugin::log(Craft::t('Could not save the `{setName}` global set.', $vars), LogLevel::Warning);
@@ -295,6 +305,18 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             $fieldGroupId = $this->_getFieldGroupId($fieldGroupName);
             // Process each field inside a field group
             foreach ($fieldGroupFields as $field) {
+                // Translations
+                $vars = array(
+                    'fieldName' => $field['name'],
+                    'fieldType' => $field['type']
+                );
+
+                // Only install fields of which the type actually exists
+                if (! isset($this->_currentFieldTypes[ $field['type'] ])) {
+                    AmInstallerPlugin::log(Craft::t('Skip creating the `{fieldName}` field, because the type `{fieldType}` doesn\'t exist.', $vars));
+                    continue;
+                }
+
                 // Edit field before we continue?
                 if (isset($field['for']) && isset($editData[ $field['for'] ])) {
                     // Remember old name
@@ -308,9 +330,10 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                         'sectionId'   => $foundEditData->id,
                         'sectionName' => $foundEditData->name
                     );
+                    $addSpaceForHandle = substr($field['handle'], 0, 1) != '{';
                     $field['name'] = Craft::t($field['name'], $vars);
                     // Add fieldName to translations
-                    $vars['fieldName'] = $field['name'];
+                    $vars['fieldName'] = $addSpaceForHandle ? ' ' . $field['name'] : $field['name']; // Add a space for proper camelString convert on the handle
                     // Edit the field handle
                     $field['handle'] = $this->_camelString(Craft::t($field['handle'], $vars));
                     // Edit the field instructions
@@ -323,13 +346,13 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     }
                 }
 
-                // Translations
+                // Reset translations
                 $vars = array(
                     'fieldName' => $field['name']
                 );
 
                 // Check whether the field already exists
-                if (in_array($field['handle'], $this->currentFields)) {
+                if (in_array($field['handle'], $this->_currentFields)) {
                     AmInstallerPlugin::log(Craft::t('Skip creating the `{fieldName}` field, because it already exists.', $vars));
                     continue;
                 }
@@ -349,7 +372,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 if (isset($field['settings'])) {
                     // Check whether it's an Entries field type, which is connected to a section that might not exist
                     if ($newField->type == 'Entries' && isset($field['settings']['section'])) {
-                        $sectionId = array_search($field['settings']['section'], $this->currentSections);
+                        $sectionId = array_search($field['settings']['section'], $this->_currentSections);
                         if ($sectionId) {
                             $sectionId = explode('-', $sectionId);
                             $sectionId = $sectionId[0];
@@ -359,8 +382,8 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     $newField->settings = $field['settings'];
                 }
                 if (craft()->fields->saveField($newField)) {
-                    $this->currentFields[$newField->id] = $newField->handle; // Add to current fields
-                    $this->currentFieldsTypes[$newField->handle] = $newField->type; // Add to current fields types
+                    $this->_currentFields[$newField->id] = $newField->handle; // Add to current fields
+                    $this->_currentFieldsTypes[$newField->handle] = $newField->type; // Add to current fields types
                     // Add to fields information for returning
                     if ($returnFields) {
                         $fieldsInformation[$nameBeforeEdit] = array(
@@ -374,8 +397,8 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     if ($newField->type == 'Matrix' && isset($field['settings']['blockTypes'])) {
                         foreach ($field['settings']['blockTypes'] as $blockType) {
                             foreach ($blockType['fields'] as $field) {
-                                $this->currentFields[ 'MatrixBlock-' . $newField->id ] = $field['handle']; // Add to current fields
-                                $this->currentFieldsTypes[ 'MatrixBlock-' . $newField->handle ] = $field['type']; // Add to current fields types
+                                $this->_currentFields[ 'MatrixBlock-' . $newField->id ] = $field['handle']; // Add to current fields
+                                $this->_currentFieldsTypes[ 'MatrixBlock-' . $newField->handle ] = $field['type']; // Add to current fields types
                             }
                         }
                     }
@@ -474,7 +497,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             // Create a new set for each tab
             $tabs[$tabName] = array();
             foreach ($fields as $field) {
-                $fieldId = array_search($field['name'], $this->currentFields);
+                $fieldId = array_search($field['name'], $this->_currentFields);
                 if ($fieldId) {
                     // Add field to current tab
                     $tabs[$tabName][] = $fieldId;
@@ -513,14 +536,14 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             foreach ($fieldLayout as $fieldGroupName => $fieldGroupFields) {
                 foreach ($fieldGroupFields as $field) {
                     // Is the field type known?
-                    if (! isset($this->currentFieldsTypes[ $field['name'] ])) {
+                    if (! isset($this->_currentFieldsTypes[ $field['name'] ])) {
                         continue;
                     }
                     // Only parse the content if we have any at all
                     if (! isset($field['testContent'])) {
                         continue;
                     }
-                    $fieldId   = array_search($field['name'], $this->currentFields);
+                    $fieldId   = array_search($field['name'], $this->_currentFields);
                     $fieldName = $field['name'];
                     $content   = $this->_getEntryContentForField($newEntry, $fieldId, $fieldName, $field['testContent']);
                     if ($content) {
@@ -550,10 +573,10 @@ class AmInstaller_InstallService extends BaseApplicationComponent
      */
     private function _getEntryContentForField($entry, $fieldId, $fieldName, $testContent)
     {
-        if (! isset($this->currentFieldsTypes[$fieldName])) {
+        if (! isset($this->_currentFieldsTypes[$fieldName])) {
             return false;
         }
-        switch ($this->currentFieldsTypes[$fieldName]) {
+        switch ($this->_currentFieldsTypes[$fieldName]) {
             case 'Assets':
                 return $testContent;
                 break;
@@ -617,7 +640,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             foreach ($setFields as $field) {
                 // Add each field to the layout
                 $createdField = $createdFields[ $field['name'] ];
-                $fieldId = array_search($createdField['handle'], $this->currentFields);
+                $fieldId = array_search($createdField['handle'], $this->_currentFields);
                 if ($fieldId) {
                     // Add field to GlobalSet tab
                     $tabs[0][] = $fieldId;

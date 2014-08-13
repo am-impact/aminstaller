@@ -1,3 +1,5 @@
+{% set installedFieldTypes = craft.fields.getAllFieldTypes() %}
+
 <div id="tab-fields" class="hidden">
     <h1>{{ 'Fields'|t }}</h1>
     <p>{{ 'Fields that\'ll be installed, if not already available'|t }}</p>
@@ -21,7 +23,7 @@
                             {{ field.handle }}
                         </td>
                         <td data-title="Type">
-                            <span class="light">{{ field.type }}</span>
+                            <span class="light{% if attribute(installedFieldTypes, field.type) is not defined %} error{% endif %}">{{ field.type }}</span>
                         </td>
                         <td data-title="Groep">
                             <span class="light">{{ fieldLayoutName }}</span>
