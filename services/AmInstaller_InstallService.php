@@ -4,13 +4,13 @@ namespace Craft;
 class AmInstaller_InstallService extends BaseApplicationComponent
 {
     public $returnMessage = '';
+    private $_installFields = array();
     private $_currentSections = array();
     private $_currentFieldGroups = array();
     private $_currentFields = array();
     private $_currentFieldsTypes = array();
     private $_currentFieldTypes = array();
     private $_currentMatrixBlockTypes = array();
-    private $_currentGlobalSets = array();
 
     /**
      * Install a module.
@@ -29,7 +29,6 @@ class AmInstaller_InstallService extends BaseApplicationComponent
         $this->_setCurrentFieldGroups();
         $this->_setCurrentFields();
         $this->_setCurrentFieldTypes();
-        $this->_setCurrentGlobalSets();
         // Install the module
         $result = $this->_installModule($moduleName, $module);
         // Add the module to the database, as installed
@@ -138,10 +137,10 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 $sectionName = craft()->request->getPost($sectionKey, false);
                 $sectionUrlFormat = craft()->request->getPost($sectionKey . 'UrlFormat', false);
                 if (! $sectionName || ! $sectionUrlFormat) {
-                    return false;
+                    continue;
                 }
                 elseif (in_array($sectionName, $this->_currentSections) || in_array($this->_camelString($sectionName), $this->_currentSections) || in_array($sectionUrlFormat, $this->_currentSections)) {
-                    return false;
+                    continue;
                 }
                 $available[$sectionKey] = array(
                     'name'      => $sectionName,
@@ -149,7 +148,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                     'urlFormat' => $sectionUrlFormat
                 );
             }
-            return $available;
+            return count($available) ? $available : false;
         }
         return false;
     }
@@ -243,50 +242,6 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     }
 
     /**
-     * Get current global sets.
-     */
-    private function _setCurrentGlobalSets()
-    {
-        $globalSets = craft()->globals->getAllSets();
-        foreach ($globalSets as $globalSet) {
-            $this->_currentGlobalSets[ $globalSet->id . '-name' ] = $globalSet->name;
-            $this->_currentGlobalSets[ $globalSet->id . '-handle' ] = $globalSet->handle;
-        }
-    }
-
-    /**
-     * Get a global set.
-     *
-     * @param string $name Global set name.
-     *
-     * @return GlobalSetModel
-     */
-    private function _getGlobalSet($name)
-    {
-        $globalSetId = array_search($name, $this->_currentGlobalSets);
-        if (! $globalSetId) {
-            $vars = array(
-                'setName' => $name
-            );
-            $globalSet = new GlobalSetModel();
-            $globalSet->name   = $name;
-            $globalSet->handle = $this->_camelString($name);
-            if (craft()->globals->saveSet($globalSet)) {
-                $this->_currentGlobalSets[$globalSet->id] = $globalSet->name; // Add to current global sets
-                $this->_currentGlobalSets[$globalSet->id] = $globalSet->handle; // Add to current global sets
-                AmInstallerPlugin::log(Craft::t('Global set `{setName}` created successfully.', $vars));
-            } else {
-                AmInstallerPlugin::log(Craft::t('Could not save the `{setName}` global set.', $vars), LogLevel::Warning);
-            }
-            return $globalSet;
-        } else {
-            $globalSetId = explode('-');
-            $globalSetId = (int)$globalSetId[0];
-        }
-        return craft()->globals->getSetById($globalSetId);
-    }
-
-    /**
      * Create all fields from a module.
      *
      * @param array $fields
@@ -305,6 +260,16 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             $fieldGroupId = $this->_getFieldGroupId($fieldGroupName);
             // Process each field inside a field group
             foreach ($fieldGroupFields as $field) {
+                // Remember current name if we need to return it
+                if ($returnFields) {
+                    $nameBeforeEdit = $field['name'];
+                }
+
+                // Only install the field if we have to
+                if (! $returnFields && count($this->_installFields) && ! in_array($field['name'], $this->_installFields)) {
+                    continue;
+                }
+
                 // Translations
                 $vars = array(
                     'fieldName' => $field['name'],
@@ -318,7 +283,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
                 }
 
                 // Edit field before we continue?
-                if (isset($field['for']) && isset($editData[ $field['for'] ])) {
+                if (isset($field['for']) && isset($editData[ $field['for'] ]) && ! is_null($editData[ $field['for'] ])) {
                     // Remember old name
                     if ($returnFields) {
                         $nameBeforeEdit = $field['name'];
@@ -631,26 +596,69 @@ class AmInstaller_InstallService extends BaseApplicationComponent
         $createdFields = $this->_createFields($globals, $installedSections, true);
         // Process the global sets first
         foreach ($globals as $setName => $setFields) {
-            // Get GlobalSet
-            $globalSet = $this->_getGlobalSet($setName);
-            // Process each field inside a GlobalSet
+            // Set variables for later
             $tabs = array();
             $required = array();
             $content = array();
-            foreach ($setFields as $field) {
-                // Add each field to the layout
-                $createdField = $createdFields[ $field['name'] ];
-                $fieldId = array_search($createdField['handle'], $this->_currentFields);
-                if ($fieldId) {
+
+            // Do we have a current global set?
+            $globalSet = craft()->globals->getSetByHandle($this->_camelString($setName));
+
+            // Delete old
+            if ($globalSet) {
+                // Get current fields
+                $currentContent = $globalSet->getContent()->getAttributes();
+                $fieldLayout = $globalSet->getFieldLayout();
+                foreach ($fieldLayout->getFields() as $fieldLayoutField) {
+                    $field = $fieldLayoutField->getField();
                     // Add field to GlobalSet tab
-                    $tabs[0][] = $fieldId;
+                    $tabs[0][] = $field->id;
                     // Is the field required?
-                    if (isset($field['required']) && $field['required']) {
-                        $required[] = $fieldId;
+                    if ($field->required) {
+                        $required[] = $field->id;
                     }
                     // Add content
-                    if (isset($createdField['value'])) {
-                        $content[ $createdField['handle'] ] = $createdField['value'];
+                    if ($globalSet->{$field->handle} instanceof ElementCriteriaModel) {
+                        $content[$field->handle] = $globalSet->{$field->handle}->ids();
+                    }
+                    else if (isset($currentContent[$field->handle])) {
+                        $content[$field->handle] = $currentContent[$field->handle];
+                    }
+                }
+                // Delete current set
+                craft()->globals->deleteSetById($globalSet->id);
+            }
+
+            // Create new
+            $vars = array(
+                'setName' => $setName
+            );
+            $globalSet = new GlobalSetModel();
+            $globalSet->name   = $setName;
+            $globalSet->handle = $this->_camelString($setName);
+            if (craft()->globals->saveSet($globalSet)) {
+                AmInstallerPlugin::log(Craft::t('Global set `{setName}` created successfully.', $vars));
+            } else {
+                AmInstallerPlugin::log(Craft::t('Could not save the `{setName}` global set.', $vars), LogLevel::Warning);
+            }
+
+            // Process each field inside a GlobalSet
+            foreach ($setFields as $field) {
+                // Add each field to the layout
+                if (isset($createdFields[ $field['name'] ])) {
+                    $createdField = $createdFields[ $field['name'] ];
+                    $fieldId = array_search($createdField['handle'], $this->_currentFields);
+                    if ($fieldId) {
+                        // Add field to GlobalSet tab
+                        $tabs[0][] = $fieldId;
+                        // Is the field required?
+                        if (isset($field['required']) && $field['required']) {
+                            $required[] = $fieldId;
+                        }
+                        // Add content
+                        if (isset($createdField['value'])) {
+                            $content[ $createdField['handle'] ] = $createdField['value'];
+                        }
                     }
                 }
             }
@@ -708,6 +716,7 @@ class AmInstaller_InstallService extends BaseApplicationComponent
     {
         // Install fields
         if (! is_null($moduleInformation->fields)) {
+            $this->_installFields = craft()->request->getPost('installFields', array());
             $this->_createFields($moduleInformation->fields);
         }
         // Install sections & templates
@@ -721,48 +730,51 @@ class AmInstaller_InstallService extends BaseApplicationComponent
             // Check section availability
             $sectionResult = $this->_checkSectionAvailability($moduleInformation->sections);
             if (! $sectionResult) {
-                $this->_setReturnMessage(Craft::t('One of the sections that was about to be installed, already exists.'));
-                return false;
-            }
-            // Gather install information
-            $templateGroupName = craft()->request->getPost('templateGroup', false);
-            if (! $templateGroupName || empty($templateGroupName)) {
-                $this->_setReturnMessage(Craft::t('The template group field doesn\'t contain correct data.'));
-                return false;
-            }
-            $primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
-            $templateGroupName = $this->_uriString($templateGroupName);
-
-            // Install sections
-            foreach ($sectionResult as $sectionKey => $sectionValues) {
-                // Add section
-                $hasUrls = ($sectionValues['type'] != SectionType::Single);
-                $addToTemplateGroupName = ($sectionValues['type'] != SectionType::Single) ? '/_entry' : '';
-                $createdSection = $this->_createSection($sectionValues['name'], $sectionValues['type'], $hasUrls, $templateGroupName . $addToTemplateGroupName, $primaryLocaleId, $sectionValues['urlFormat']);
-                $installedSections[$sectionKey] = $createdSection;
-
-                // Add field layout if available, otherwise an empty layout
-                $fieldLayout = array();
-                if (! is_null($moduleInformation->fieldLayout) && isset($moduleInformation->fieldLayout[$sectionKey])) {
-                    $fieldLayout = $moduleInformation->fieldLayout[$sectionKey];
+                // Get the sections we want to install for dynamic global fields
+                foreach ($moduleInformation->sections as $sectionKey => $sectionValues) {
+                    $installedSections[$sectionKey] = craft()->sections->getSectionByHandle($this->_camelString($sectionValues['name']));
                 }
-                $createdLayout = $this->_createFieldLayout($fieldLayout);
+            } else {
+                // Gather install information
+                $templateGroupName = craft()->request->getPost('templateGroup', false);
+                if (! $templateGroupName || empty($templateGroupName)) {
+                    $this->_setReturnMessage(Craft::t('The template group field doesn\'t contain correct data.'));
+                    return false;
+                }
+                $primaryLocaleId = craft()->i18n->getPrimarySiteLocaleId();
+                $templateGroupName = $this->_uriString($templateGroupName);
 
-                // Add entry type
-                $createdEntryType = $this->_createEntryType($createdSection, $createdLayout);
+                // Install sections
+                foreach ($sectionResult as $sectionKey => $sectionValues) {
+                    // Add section
+                    $hasUrls = ($sectionValues['type'] != SectionType::Single);
+                    $addToTemplateGroupName = ($sectionValues['type'] != SectionType::Single) ? '/_entry' : '';
+                    $createdSection = $this->_createSection($sectionValues['name'], $sectionValues['type'], $hasUrls, $templateGroupName . $addToTemplateGroupName, $primaryLocaleId, $sectionValues['urlFormat']);
+                    $installedSections[$sectionKey] = $createdSection;
 
-                // Add entries
-                if (! is_null($moduleInformation->entries) && isset($moduleInformation->entries[$sectionKey]) && count($fieldLayout)) {
-                    $installTestEntries = craft()->request->getPost($sectionKey . 'installTestEntries', '0') == '1';
-                    if ($installTestEntries) {
-                        $totalTestEntries = (int)craft()->request->getPost($sectionKey . 'totalTestEntries', 1);
-                        $this->_createEntries($totalTestEntries, $primaryLocaleId, $createdSection, $fieldLayout, $createdEntryType);
+                    // Add field layout if available, otherwise an empty layout
+                    $fieldLayout = array();
+                    if (! is_null($moduleInformation->fieldLayout) && isset($moduleInformation->fieldLayout[$sectionKey])) {
+                        $fieldLayout = $moduleInformation->fieldLayout[$sectionKey];
+                    }
+                    $createdLayout = $this->_createFieldLayout($fieldLayout);
+
+                    // Add entry type
+                    $createdEntryType = $this->_createEntryType($createdSection, $createdLayout);
+
+                    // Add entries
+                    if (! is_null($moduleInformation->entries) && isset($moduleInformation->entries[$sectionKey]) && count($fieldLayout)) {
+                        $installTestEntries = craft()->request->getPost($sectionKey . 'installTestEntries', '0') == '1';
+                        if ($installTestEntries) {
+                            $totalTestEntries = (int)craft()->request->getPost($sectionKey . 'totalTestEntries', 1);
+                            $this->_createEntries($totalTestEntries, $primaryLocaleId, $createdSection, $fieldLayout, $createdEntryType);
+                        }
                     }
                 }
-            }
 
-            // Install templates
-            $this->_createTemplateGroup($moduleName, $templateGroupName);
+                // Install templates
+                $this->_createTemplateGroup($moduleName, $templateGroupName);
+            }
         }
 
         // Install globals

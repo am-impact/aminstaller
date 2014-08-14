@@ -1,8 +1,10 @@
+{% from "_includes/forms" import checkbox %}
+
 {% set installedFieldTypes = craft.fields.getAllFieldTypes() %}
 
 <div id="tab-fields" class="hidden">
     <h1>{{ 'Fields'|t }}</h1>
-    <p>{{ 'Fields that\'ll be installed, if not already available'|t }}</p>
+    <p>{{ 'Fields that\'ll be installed, if not already available.'|t }}</p>
     <hr>
 
     <table id="information-fields" class="data fullwidth collapsible">
@@ -11,22 +13,30 @@
             <th scope="col">{{ 'Handle'|t }}</th>
             <th scope="col">{{ 'Type'|t }}</th>
             <th scope="col">{{ 'Group'|t }}</th>
+            <th scope="col" class="rightalign">{{ 'Install'|t }}</th>
         </thead>
         <tbody>
             {% for fieldLayoutName, fields in moduleInformation.fields %}
                 {% for field in fields %}
                     <tr data-name="{{ fieldLayoutName }}-{{ field.name }}">
-                        <th data-title="Naam">
+                        <th data-title="{{ 'Name'|t }}">
                             {{ field.name }}
                         </th>
-                        <td data-title="Handle">
+                        <td data-title="{{ 'Handle'|t }}">
                             {{ field.handle }}
                         </td>
-                        <td data-title="Type">
+                        <td data-title="{{ 'Type'|t }}">
                             <span class="light{% if attribute(installedFieldTypes, field.type) is not defined %} error{% endif %}">{{ field.type }}</span>
                         </td>
-                        <td data-title="Groep">
+                        <td data-title="{{ 'Group'|t }}">
                             <span class="light">{{ fieldLayoutName }}</span>
+                        </td>
+                        <td data-title="{{ 'Install'|t }}" class="rightalign">
+                            {{ forms.checkboxField({
+                                name: 'installFields[]',
+                                value: field.name,
+                                checked: true
+                            }) }}
                         </td>
                     </tr>
                 {% endfor %}

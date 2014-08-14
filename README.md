@@ -4,6 +4,13 @@ _Install modules in Craft that'll create most things you need, automatically_
 
 ## Changelog
 
+### v0.4
+
+- Added the option to install the fields that you want by using checkboxes.
+- Installing sections is no longer blocked if one that is about to be installed, already exists, we just skip it.
+- Fixed a bug where global fields could give an error when that field wasn't amended dynamically.
+- Fixed a bug where globals couldn't be installed if the set already exists.
+
 
 ### v0.3
 
