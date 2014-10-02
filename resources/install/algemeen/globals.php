@@ -15,12 +15,6 @@
 return array(
     'SEO' => array(
         array(
-            'name'         => 'Title',
-            'handle'       => 'seoGlobalTitle',
-            'type'         => 'PlainText',
-            'instructions' => 'Title voor de gehele site indien dit niet op een andere pagina is gevuld.'
-        ),
-        array(
             'name'         => 'Description',
             'handle'       => 'seoGlobalDescription',
             'type'         => 'PlainText',
