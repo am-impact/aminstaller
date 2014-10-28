@@ -61,6 +61,17 @@ return array(
             'type'     => 'PlainText'
         )
     ),
+    'Koppelingen' => array(
+        array(
+            'name'         => 'Gerelateerde diensten',
+            'handle'       => 'gerelateerdeDiensten',
+            'type'         => 'Entries',
+            'translatable' => false,
+            'settings' => array(
+                'section' => 'Dienst' // It will only allow entries from this section to be selected, if available. Otherwise, all sections
+            )
+        )
+    ),
     'NAW gegevens' => array(
         array(
             'name'     => 'Google Maps',

@@ -22,26 +22,6 @@ return array(
     'entrySection' => array(
         'Content' => array(
             array(
-                'name'        => 'matrixTest',
-                'required'    => false,
-                'testContent' => array(
-                    array(
-                        'type' => 'blok1',
-                        'fields' => array(
-                            'tekst' => 'Tekst 1',
-                            'nogEenTekst' => array('Nog een tekst 1', 'Nog een tekst 11', 'Nog een tekst 111', 'Nog een tekst 1111')
-                        )
-                    ),
-                    array(
-                        'type' => 'blok1',
-                        'fields' => array(
-                            'tekst' => 'Tekst 2',
-                            'nogEenTekst' => 'Nog een tekst 2'
-                        )
-                    )
-                )
-            ),
-            array(
                 'name'        => 'afbeelding',
                 'required'    => false,
                 'testContent' => ''
@@ -75,6 +55,12 @@ return array(
                 'name'        => 'omschrijving',
                 'required'    => false,
                 'testContent' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam adipiscing nec lectus quis mollis. Mauris vehicula nulla laoreet felis adipiscing porttitor sit amet a quam. Pellentesque fermentum at odio at ultrices. Nam purus tellus, porta quis nulla id, hendrerit iaculis augue. Cras porttitor enim pretium imperdiet placerat. Vestibulum urna turpis, rhoncus a magna eget, condimentum adipiscing felis. Morbi non erat non lacus scelerisque sollicitudin. Aenean pulvinar leo et eros faucibus, quis venenatis libero mattis. Duis tempor purus leo, non pretium risus suscipit non. Praesent feugiat eget nisl fermentum vehicula. Duis mollis posuere diam, vehicula tincidunt tellus eleifend vel.'
+            )
+        ),
+        'Koppelingen' => array(
+            array(
+                'name'        => 'gerelateerdeDiensten',
+                'required'    => false
             )
         ),
         'Social media' => array(

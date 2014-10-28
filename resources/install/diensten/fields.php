@@ -30,10 +30,7 @@ return array(
         array(
             'name'     => 'Overzichtstekst',
             'handle'   => 'overzichtstekst',
-            'type'     => 'RichText',
-            'settings' => array(
-                'configFile' => 'Tekst met opmaak.json'
-            )
+            'type'     => 'PlainText'
         ),
         array(
             'name'     => 'Omschrijving',
@@ -41,18 +38,6 @@ return array(
             'type'     => 'RichText',
             'settings' => array(
                 'configFile' => 'Alles.json'
-            )
-        )
-    ),
-    'Koppelingen' => array(
-        array(
-            'name'         => 'Geschreven door',
-            'handle'       => 'geschrevenDoor',
-            'type'         => 'Entries',
-            'translatable' => false,
-            'settings' => array(
-                'section' => 'Medewerker', // It will only allow entries from this section to be selected, if available. Otherwise, all sections
-                'limit'   => 1
             )
         )
     ),

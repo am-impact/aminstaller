@@ -17,36 +17,6 @@
 return array(
     'Standaard' => array(
         array(
-            'name'     => 'Matrix test',
-            'handle'   => 'matrixTest',
-            'type'     => 'Matrix',
-            'settings' => array(
-                'maxBlocks' => 4,
-                'blockTypes' => array(
-                    'new1' => array(
-                        'name' => 'Blok 1',
-                        'handle' => 'blok1',
-                        'fields' => array(
-                            'new1' => array(
-                                'name' => 'Tekst',
-                                'handle' => 'tekst',
-                                'required' => false,
-                                'type' => 'PlainText',
-                                'typesettings' => array()
-                            ),
-                            'new2' => array(
-                                'name' => 'Nog een tekst',
-                                'handle' => 'nogEenTekst',
-                                'required' => false,
-                                'type' => 'PlainText',
-                                'typesettings' => array()
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-        array(
             'name'         => 'Afbeelding',
             'handle'       => 'afbeelding',
             'type'         => 'Assets',
@@ -63,6 +33,17 @@ return array(
             'type'     => 'RichText',
             'settings' => array(
                 'configFile' => 'Alles.json'
+            )
+        )
+    ),
+    'Koppelingen' => array(
+        array(
+            'name'         => 'Gerelateerde diensten',
+            'handle'       => 'gerelateerdeDiensten',
+            'type'         => 'Entries',
+            'translatable' => false,
+            'settings' => array(
+                'section' => 'Dienst' // It will only allow entries from this section to be selected, if available. Otherwise, all sections
             )
         )
     ),

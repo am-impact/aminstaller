@@ -13,7 +13,7 @@
  * be used to parse {variableName} variables.
  */
 return array(
-    'SEO' => array(
+    'Globaal SEO' => array(
         array(
             'name'         => 'Description',
             'handle'       => 'seoGlobalDescription',

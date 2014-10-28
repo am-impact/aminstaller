@@ -27,7 +27,7 @@ return array(
                 'testContent' => ''
             ),
             array(
-                'name'        => 'introTekst',
+                'name'        => 'overzichtstekst',
                 'required'    => false,
                 'testContent' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. In semper interdum rhoncus.'
             ),
